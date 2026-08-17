@@ -109,6 +109,7 @@ let previewVideo = null;  // {width, height, duration} of that file, for 1:1 pre
 let lastOutputPath = null;
 let presets = [];
 let isRunning = false;
+let appMode = "auto";
 
 const $ = (id) => document.getElementById(id);
 
@@ -646,7 +647,11 @@ function renderQueue() {
 
   $("queueCount").textContent = queue.length ? `— ${queue.length}` : "";
   const btn = $("runBtn");
-  btn.textContent = queue.length > 1 ? `Создать субтитры (${queue.length})` : "Создать субтитры";
+  if (appMode === "auto") {
+    btn.textContent = queue.length > 1 ? `Создать субтитры (${queue.length})` : "Создать субтитры";
+  } else if (typeof updateManualRunButton === "function") {
+    updateManualRunButton();
+  }
 }
 
 // ---------------- run pipeline ----------------
@@ -656,6 +661,9 @@ async function runPipeline() {
 
   isRunning = true;
   $("runBtn").disabled = true;
+  $("cancelBtn").disabled = false;
+  $("cancelBtn").textContent = "Остановить после файла";
+  $("cancelBtn").classList.remove("hidden");
   $("resultActions").classList.add("hidden");
   queue.forEach((f) => { f.status = "pending"; f.progress = 0; f.output = null; });
   renderQueue();
@@ -700,10 +708,10 @@ window.updateProgress = function (stage, pct, index) {
     setProgress(label, pct);
     return;
   }
-  queue[index].progress = pct;
+  queue[index].progress = ManualState.pipelineProgress(queue[index].progress, stage, pct);
   const prefix = queue.length > 1 ? `[${index + 1}/${queue.length}] ` : "";
   // overall = files fully done + fraction of the current one
-  const overall = Math.round(((index + pct / 100) / queue.length) * 100);
+  const overall = Math.round(((index + queue[index].progress / 100) / queue.length) * 100);
   setProgress(prefix + label, overall);
   renderQueue();
 };
@@ -724,11 +732,13 @@ window.onFileDone = function (index, outputPath) {
 window.onFileError = function (index, message) {
   queue[index].status = "failed";
   renderQueue();
-  onPipelineError(`${queue[index].name}: ${message}`);
+  showToast(`Ошибка: ${queue[index].name}: ${message}`);
 };
 
 window.onQueueDone = function (outputs) {
   isRunning = false;
+  $("cancelBtn").classList.add("hidden");
+  $("cancelBtn").disabled = false;
   $("runBtn").disabled = false;
   const failed = queue.filter((f) => f.status === "failed").length;
   setProgress(failed ? `Готово, с ошибками: ${failed}` : "Готово", 100);
@@ -751,7 +761,7 @@ function showToast(message) {
 }
 
 window.onPipelineError = function (message) {
-  $("runBtn").disabled = false;
+  if (!isRunning) $("runBtn").disabled = false;
   setProgress("Ошибка", null);
   showToast("Ошибка: " + message);
 };
@@ -827,6 +837,7 @@ async function refreshGpuBadge() {
 
 function init() {
   setupBindings();
+  if (typeof initManualMode === "function") initManualMode();
   applyStyleToControls();
   applyStageGeometry();
   loadPresets();
