@@ -8,7 +8,7 @@
   --color-accent-strong: oklch(80% 0.13 272);
   --color-focus: oklch(84% 0.15 100);
 
-  --font-display: "Segoe UI", system-ui, sans-serif;
+  --font-display: "Bahnschrift", "Segoe UI", sans-serif;
   --font-body: "Segoe UI", system-ui, sans-serif;
   --font-mono: "Cascadia Mono", "Consolas", monospace;
 

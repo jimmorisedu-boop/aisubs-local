@@ -1,6 +1,14 @@
 [
   {
     "date": "2026-08-17",
+    "macrostructure": "Long Document",
+    "theme": "AISubs dark",
+    "theme_axes": "dark / system-sans / cool",
+    "enrichment": "single real Auto product capture",
+    "brief": "Concise technical GitHub Pages overview without promotional copy"
+  },
+  {
+    "date": "2026-08-17",
     "macrostructure": "Workbench",
     "theme": "AISubs dark",
     "theme_axes": "dark / grotesk-sans / cool",
