@@ -382,14 +382,28 @@ function renderPresetGrid() {
     const [family, weight] = fontCss(p.font);
     const thumbColor = p.highlight_style === "box" ? p.box_color : p.word_highlight_color;
     card.innerHTML = `
-      <div class="preset-thumb">
-        <span style="font-family:${family}; font-weight:${weight}; font-size:15px; color:${p.text_color}; ${p.highlight_style==='box' ? `background:${thumbColor}; color:${p.active_text_color}; padding:3px 8px; border-radius:${Math.min(p.box_radius,10)}px;` : `color:${thumbColor};`} text-transform:${textCaseOf(p) === 'upper' ? 'uppercase' : textCaseOf(p) === 'lower' ? 'lowercase' : 'none'};">
-          Аа
-        </span>
-      </div>
+      <div class="preset-thumb"><span class="preset-sample">Аа</span></div>
       <div class="preset-name">${p.name || p.filename}</div>
       <button class="preset-del" title="Удалить пресет">×</button>
     `;
+
+    // Styled through the DOM, not inside the markup: font stacks contain
+    // quotes, and those terminate a style="..." attribute early, silently
+    // dropping every declaration after the font name.
+    const sample = card.querySelector(".preset-sample");
+    sample.style.fontFamily = family;
+    sample.style.fontWeight = weight;
+    sample.style.fontSize = "15px";
+    sample.style.textTransform = textCaseOf(p) === "upper" ? "uppercase"
+      : textCaseOf(p) === "lower" ? "lowercase" : "none";
+    if (p.highlight_style === "box") {
+      sample.style.background = thumbColor;
+      sample.style.color = p.active_text_color;
+      sample.style.padding = "3px 8px";
+      sample.style.borderRadius = Math.min(p.box_radius, 10) + "px";
+    } else {
+      sample.style.color = thumbColor;
+    }
     card.addEventListener("click", () => {
       style = Object.assign({}, DEFAULT_STYLE, p);
       applyStyleToControls();
