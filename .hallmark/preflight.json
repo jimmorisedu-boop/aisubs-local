@@ -1,0 +1,9 @@
+{
+  "date": "2026-08-17",
+  "font_stack": "system Segoe UI with Arial Narrow display",
+  "palette": "existing AISubs dark interface palette with blue-violet accent",
+  "motion": "motion-cut; no frontend animation dependency",
+  "spacing": "4-point CSS token scale",
+  "framework": "standalone vanilla HTML and CSS",
+  "preserved": ["dark palette", "blue-violet accent", "standalone page", "real product screenshots"]
+}

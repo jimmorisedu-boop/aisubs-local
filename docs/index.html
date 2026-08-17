@@ -3,471 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AISubs — локальные субтитры с подсветкой слов</title>
-<meta name="description" content="Приложение для Windows: распознаёт речь и вшивает субтитры с подсветкой произносимого слова. Работает офлайн, без подписок.">
+<meta name="description" content="AISubs — офлайн-приложение Windows для пакетных субтитров: Auto/Manual, проверка слов и таймингов, Whisper и пословная подсветка.">
+<meta name="theme-color" content="oklch(15% .014 270)">
+<title>AISubs — пакетные субтитры без облака</title>
 <style>
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
+/* Hallmark · genre: atmospheric · macrostructure: Workbench · theme: AISubs dark · enrichment: real product captures · nav: N9 · footer: Ft5 */
 :root{
-  --bg:#0c0e13; --panel:#151822; --panel-2:#1b1f2c; --border:#262b3a;
-  --text:#eef0f6; --dim:#9099b0; --accent:#4fb2ff; --accent-2:#9b5cff;
-  --grad:linear-gradient(135deg,#4fb2ff,#9b5cff); --good:#2be55b;
+  --color-paper:oklch(15% .014 270);--color-paper-2:oklch(19% .018 270);--color-paper-3:oklch(23% .022 270);
+  --color-ink:oklch(96% .008 270);--color-ink-2:oklch(76% .018 270);--color-ink-3:oklch(62% .02 270);
+  --color-rule:oklch(31% .025 270);--color-accent:oklch(75% .15 245);--color-accent-2:oklch(67% .19 300);
+  --color-accent-ink:oklch(15% .03 270);--color-focus:oklch(84% .14 230);
+  --font-display:"Arial Narrow","Segoe UI",sans-serif;--font-body:"Segoe UI",Arial,sans-serif;--font-mono:"Cascadia Mono",Consolas,monospace;
+  --space-xs:.25rem;--space-sm:.5rem;--space-md:1rem;--space-lg:1.5rem;--space-xl:2rem;--space-2xl:3rem;--space-3xl:5rem;--space-4xl:7rem;
+  --text-xs:.78rem;--text-sm:.9rem;--text-md:1rem;--text-lg:1.2rem;--text-xl:clamp(1.8rem,3vw,3rem);--text-display:clamp(3rem,5vw,5rem);
+  --radius-sm:.55rem;--radius-md:1rem;--radius-lg:1.4rem;--rule-hair:1px;--dur-fast:120ms;--ease-out:cubic-bezier(.2,.8,.2,1);
+  --page-gutter:clamp(1rem,4vw,4rem);--page-max:88rem;
 }
-*{box-sizing:border-box}
-body{
-  margin:0; background:var(--bg); color:var(--text);
-  font-family:-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.65;
-}
-a{color:var(--accent)}
-.wrap{max-width:960px; margin:0 auto; padding:0 24px}
-
-header{padding:80px 0 56px; text-align:center; border-bottom:1px solid var(--border)}
-.logo{
-  font-size:52px; font-weight:800; letter-spacing:-.5px; margin:0 0 12px;
-  background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;
-}
-.tagline{font-size:21px; color:var(--text); margin:0 0 10px}
-.sub{color:var(--dim); max-width:620px; margin:0 auto 30px}
-.badges{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:30px}
-.badge{
-  background:var(--panel-2); border:1px solid var(--border); color:var(--dim);
-  padding:6px 14px; border-radius:999px; font-size:13px;
-}
-.badge b{color:var(--good); font-weight:600}
-.cta{
-  display:inline-block; background:var(--grad); color:#08111f; font-weight:800;
-  padding:14px 30px; border-radius:12px; text-decoration:none; font-size:16px;
-  box-shadow:0 4px 24px rgba(79,178,255,.25);
-}
-.cta:hover{filter:brightness(1.08)}
-
-section{padding:56px 0; border-bottom:1px solid var(--border)}
-h2{font-size:26px; margin:0 0 8px}
-.lead{color:var(--dim); margin:0 0 28px}
-
-.shot{width:100%; border-radius:14px; border:1px solid var(--border); display:block}
-.caption{text-align:center; color:var(--dim); font-size:13px; margin-top:12px}
-
-.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px}
-.card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px}
-.card h3{margin:0 0 8px; font-size:16px}
-.card p{margin:0; color:var(--dim); font-size:14.5px}
-
-ol.steps{counter-reset:s; list-style:none; padding:0; margin:0}
-ol.steps li{
-  counter-increment:s; background:var(--panel); border:1px solid var(--border);
-  border-radius:12px; padding:16px 20px 16px 58px; margin-bottom:12px; position:relative;
-}
-ol.steps li::before{
-  content:counter(s); position:absolute; left:18px; top:16px;
-  width:26px; height:26px; border-radius:50%; background:var(--grad); color:#08111f;
-  font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center;
-}
-code, pre{font-family:ui-monospace,Consolas,monospace}
-pre{
-  background:#05070a; border:1px solid var(--border); border-radius:10px;
-  padding:14px 16px; overflow-x:auto; font-size:13.5px; color:#cfe6ff;
-}
-code{background:var(--panel-2); padding:2px 6px; border-radius:5px; font-size:13px}
-pre code{background:none; padding:0}
-
-table{width:100%; border-collapse:collapse; font-size:14.5px}
-td{padding:10px 0; border-bottom:1px solid var(--border); color:var(--dim)}
-td:first-child{color:var(--text); width:38%}
-tr:last-child td{border-bottom:none}
-
-/* panel walkthrough */
-.panel{
-  display:grid; grid-template-columns:minmax(0,300px) 1fr; gap:28px;
-  align-items:start; margin-bottom:44px;
-}
-.panel img{
-  width:100%; border-radius:12px; border:1px solid var(--border); display:block;
-}
-.panel h3{margin:0 0 4px; font-size:19px}
-.panel .role{color:var(--accent); font-size:13px; margin:0 0 16px}
-dl{margin:0}
-dt{color:var(--text); font-weight:600; font-size:14.5px; margin-top:14px}
-dt:first-child{margin-top:0}
-dd{margin:3px 0 0; color:var(--dim); font-size:14px}
-@media (max-width:720px){
-  .panel{grid-template-columns:1fr}
-  .panel img{max-width:320px; margin:0 auto}
-}
-
-/* pipeline diagram */
-.flow{width:100%; height:auto; display:block; margin:8px 0 26px}
-.flow text{font-family:-apple-system,"Segoe UI",sans-serif}
-.note{
-  background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--accent);
-  border-radius:10px; padding:14px 18px; color:var(--dim); font-size:14.5px; margin-top:22px;
-}
-.note b{color:var(--text)}
-
-footer{padding:40px 0 60px; text-align:center; color:var(--dim); font-size:14px}
+*{box-sizing:border-box}html,body{margin:0;overflow-x:clip;background:var(--color-paper);color:var(--color-ink)}html{scroll-behavior:smooth}
+body{font-family:var(--font-body);font-size:var(--text-md);line-height:1.6}
+a{color:inherit;text-decoration-thickness:var(--rule-hair);text-underline-offset:.25em}a:hover{color:var(--color-accent)}a:active{transform:translateY(1px)}a:focus-visible{outline:3px solid var(--color-focus);outline-offset:4px;border-radius:var(--radius-sm)}
+img{display:block;max-width:100%;height:auto}h1,h2,h3,p,figure{margin-block-start:0}h1,h2,h3{font-family:var(--font-display);font-style:normal;line-height:1;letter-spacing:-.035em}
+h1{font-size:var(--text-display);max-width:13ch;margin-block-end:var(--space-lg);overflow-wrap:anywhere;min-width:0}h2{font-size:var(--text-xl);margin-block-end:var(--space-lg)}h3{font-size:clamp(1.45rem,2vw,2rem);margin-block-end:var(--space-md)}p{max-width:64ch}
+.shell{width:min(100%,var(--page-max));margin-inline:auto;padding-inline:var(--page-gutter)}
+.nav-edge{display:flex;align-items:center;justify-content:space-between;gap:var(--space-lg);padding-block:var(--space-lg)}
+.wordmark{font-family:var(--font-display);font-size:1.3rem;font-weight:800;letter-spacing:-.02em;text-decoration:none}.wordmark span{color:var(--color-ink-3);font-family:var(--font-body);font-size:var(--text-xs);font-weight:500;letter-spacing:0;margin-inline-start:var(--space-sm)}
+.nav-cta,.primary-cta,.secondary-cta{display:inline-flex;align-items:center;justify-content:center;min-height:2.75rem;padding:.7rem 1.05rem;border-radius:var(--radius-sm);font-weight:750;line-height:1;text-decoration:none;white-space:nowrap;transition:transform var(--dur-fast) var(--ease-out),opacity var(--dur-fast) var(--ease-out)}
+.nav-cta,.secondary-cta{border:var(--rule-hair) solid var(--color-rule);background:var(--color-paper-2)}.primary-cta{background:linear-gradient(120deg,var(--color-accent),var(--color-accent-2));color:var(--color-accent-ink)}
+.nav-cta:hover,.secondary-cta:hover{border-color:var(--color-accent);background:var(--color-paper-3)}.primary-cta:hover{color:var(--color-accent-ink);opacity:.92;transform:translateY(-1px)}
+.hero{padding-block:var(--space-sm) var(--space-4xl)}.hero-intro{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(var(--space-xl),6vw,var(--space-4xl));align-items:end;padding-block:var(--space-2xl)}
+.eyebrow{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.12em;color:var(--color-accent);margin-block-end:var(--space-lg)}.hero-lede{color:var(--color-ink-2);font-size:var(--text-lg);margin-block-end:var(--space-xl)}.hero-actions{display:flex;gap:var(--space-sm);flex-wrap:wrap}.hero-proof{align-self:stretch;display:grid;align-content:end}
+.proof-list{list-style:none;margin:0;padding:0;border-top:var(--rule-hair) solid var(--color-rule)}.proof-list li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--space-md);padding-block:var(--space-md);border-bottom:var(--rule-hair) solid var(--color-rule);color:var(--color-ink-2)}.proof-list b{color:var(--color-ink);font-family:var(--font-mono);font-size:var(--text-xs)}
+.product-shot{margin:0;border:var(--rule-hair) solid var(--color-rule);border-radius:var(--radius-lg);overflow:hidden;background:var(--color-paper-2)}.product-shot img{width:100%}.product-shot figcaption{display:flex;justify-content:space-between;gap:var(--space-md);padding:var(--space-md) var(--space-lg);color:var(--color-ink-3);font-size:var(--text-sm)}.product-shot figcaption strong{color:var(--color-ink);font-weight:650}
+section{padding-block:var(--space-4xl)}.section-head{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--space-xl);align-items:start;margin-block-end:var(--space-2xl)}.section-head p{color:var(--color-ink-2);margin:0}
+.mode-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-block:var(--rule-hair) solid var(--color-rule)}.mode{padding:var(--space-2xl) 0}.mode:first-child{padding-inline-end:var(--space-2xl)}.mode:last-child{padding-inline-start:var(--space-2xl);border-inline-start:var(--rule-hair) solid var(--color-rule)}.mode-mark{display:inline-block;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-accent);margin-block-end:var(--space-xl)}.mode p,.mode ul{color:var(--color-ink-2)}.mode ul{margin:var(--space-lg) 0 0;padding-inline-start:1.1rem}.mode li+li{margin-block-start:var(--space-sm)}.auto-proof{margin-block-start:var(--space-2xl)}
+.workflow-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;padding:0;list-style:none;border-block:var(--rule-hair) solid var(--color-rule)}.workflow-list li{padding:var(--space-xl);min-width:0}.workflow-list li+li{border-inline-start:var(--rule-hair) solid var(--color-rule)}.step-number{display:block;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-accent);margin-block-end:var(--space-2xl)}.workflow-list strong{display:block;font-family:var(--font-display);font-size:1.25rem;line-height:1.15;margin-block-end:var(--space-sm)}.workflow-list span:last-child{color:var(--color-ink-2);font-size:var(--text-sm)}
+.trust-grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:var(--space-2xl);align-items:start}.trust-grid h2{position:sticky;top:var(--space-xl)}.trust-list{margin:0}.trust-row{display:grid;grid-template-columns:minmax(8rem,3fr) minmax(0,5fr);gap:var(--space-xl);padding-block:var(--space-xl);border-top:var(--rule-hair) solid var(--color-rule)}.trust-row:last-child{border-bottom:var(--rule-hair) solid var(--color-rule)}.trust-row dt{font-weight:750}.trust-row dd{margin:0;color:var(--color-ink-2)}
+.quick-start{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--space-2xl);align-items:end;background:var(--color-paper-2);border-radius:var(--radius-lg);padding:clamp(var(--space-xl),5vw,var(--space-3xl))}.quick-start p{color:var(--color-ink-2)}.command{font-family:var(--font-mono);font-size:clamp(1.1rem,2.5vw,2rem);line-height:1.4;color:var(--color-ink);margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.command .arrow{color:var(--color-accent)}
+.foot-stmt{padding-block:var(--space-4xl) var(--space-xl)}.foot-stmt__line{font-family:var(--font-display);font-size:clamp(2rem,6vw,5rem);line-height:.98;letter-spacing:-.035em;max-width:18ch;margin-block-end:var(--space-3xl);overflow-wrap:anywhere}.foot-stmt__meta{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-xl);padding-block-start:var(--space-lg);border-top:var(--rule-hair) solid var(--color-rule);color:var(--color-ink-3);font-size:var(--text-sm)}.footer-links{display:flex;flex-wrap:wrap;gap:var(--space-md) var(--space-lg)}.footer-links a{white-space:nowrap}.channel{color:var(--color-ink-2)}
+@media (max-width:760px){:root{--page-gutter:1rem;--space-4xl:4.5rem}.wordmark span{display:none}.hero-intro,.section-head,.trust-grid,.quick-start{grid-template-columns:minmax(0,1fr)}.hero-intro{padding-block:var(--space-2xl);gap:var(--space-2xl)}.hero-proof{display:none}.product-shot figcaption{display:block}.product-shot figcaption span{display:block;margin-block-start:var(--space-xs)}.mode-pair{grid-template-columns:minmax(0,1fr)}.mode:first-child{padding-inline-end:0}.mode:last-child{padding-inline-start:0;border-inline-start:0;border-top:var(--rule-hair) solid var(--color-rule)}.workflow-list{grid-template-columns:minmax(0,1fr)}.workflow-list li+li{border-inline-start:0;border-top:var(--rule-hair) solid var(--color-rule)}.step-number{margin-block-end:var(--space-md)}.trust-grid h2{position:static}.trust-row{grid-template-columns:minmax(0,1fr);gap:var(--space-sm)}.foot-stmt__meta{display:grid}}
+@media (max-width:380px){.nav-edge{align-items:flex-start}.nav-cta{font-size:var(--text-xs);padding-inline:.8rem}.hero-actions{display:grid}.hero-actions a{width:100%}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition-duration:1ms!important;animation-duration:1ms!important;animation-iteration-count:1!important}}
 </style>
 </head>
 <body>
-
-<header>
-  <div class="wrap">
-    <h1 class="logo">AISubs</h1>
-    <p class="tagline">Субтитры с подсветкой произносимого слова</p>
-    <p class="sub">
-      Распознаёт речь в видео и вшивает субтитры, подсвечивая слово, которое
-      диктор произносит прямо сейчас — как в роликах VK, TikTok и Reels.
-    </p>
-    <div class="badges">
-      <span class="badge"><b>●</b> работает офлайн</span>
-      <span class="badge">без подписок и ключей</span>
-      <span class="badge">Windows 10 / 11</span>
-      <span class="badge">100+ языков</span>
+<header class="shell" id="hero">
+  <nav class="nav-edge" aria-label="Основная навигация"><a class="wordmark" href="#hero">AISubs <span>локальные субтитры</span></a><a class="nav-cta" href="https://github.com/jimmorisedu-boop/aisubs-local">Открыть на GitHub ↗</a></nav>
+  <div class="hero">
+    <div class="hero-intro">
+      <div><p class="eyebrow">OFFLINE · WINDOWS · BATCH</p><h1>Проверьте слова. Запустите весь пакет.</h1><p class="hero-lede">AISubs распознаёт речь, даёт исправить текст и тайминги, а затем рендерит одобренные ролики одной очередью. Видео и черновики остаются на вашем компьютере.</p><div class="hero-actions"><a class="primary-cta" href="https://github.com/jimmorisedu-boop/aisubs-local">Открыть на GitHub</a><a class="secondary-cta" href="https://github.com/jimmorisedu-boop/aisubs-local#установка">Установка</a></div></div>
+      <div class="hero-proof" aria-label="Ключевые свойства"><ul class="proof-list"><li><b>01</b><span>Пачка роликов идёт одной очередью, а не по одному файлу.</span></li><li><b>02</b><span>Auto работает без остановок; Manual добавляет проверку перед рендером.</span></li><li><b>03</b><span>Whisper, кэш и рендер работают локально без подписки.</span></li></ul></div>
     </div>
-    <a class="cta" href="https://github.com/jimmorisedu-boop/aisubs-local">Открыть на GitHub</a>
+    <figure class="product-shot"><img src="screenshot-manual.png" alt="Manual Mode AISubs: очередь из четырёх видео, редактор слов и таймингов, предупреждение и пакетный рендер одобренных файлов" width="1440" height="900"><figcaption><strong>Manual Mode — проверка готовых транскриптов</strong><span>Правки сохраняются автоматически</span></figcaption></figure>
   </div>
 </header>
-
-<section>
-  <div class="wrap">
-    <img class="shot" src="screenshot.png" alt="Окно AISubs: очередь видео, предпросмотр на кадре, настройки стиля">
-    <p class="caption">Предпросмотр показывает кадр из вашего видео в масштабе 1:1 — субтитры лягут ровно так же</p>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Что умеет</h2>
-    <p class="lead">Всё считается на вашем компьютере: видео и звук никуда не отправляются.</p>
-    <div class="grid">
-      <div class="card">
-        <h3>Пословная подсветка</h3>
-        <p>Цветная плашка под текущим словом, смена цвета текста (караоке) или простые субтитры без подсветки.</p>
-      </div>
-      <div class="card">
-        <h3>Точное распознавание</h3>
-        <p>Whisper large-v3 с пословными таймкодами. На видеокарте NVIDIA, с автоматическим переходом на процессор.</p>
-      </div>
-      <div class="card">
-        <h3>Пакетная обработка</h3>
-        <p>Перетащите хоть десяток роликов — обработаются очередью, с прогрессом по каждому.</p>
-      </div>
-      <div class="card">
-        <h3>Любые шрифты</h3>
-        <p>Все установленные в Windows плюс 14 из комплекта. Фильтр «только с кириллицей» проверяет реальные глифы, а не название.</p>
-      </div>
-      <div class="card">
-        <h3>Живой предпросмотр</h3>
-        <p>Кадр из вашего видео 1:1: размер шрифта, отступы и переносы видны такими, какими попадут в результат.</p>
-      </div>
-      <div class="card">
-        <h3>Пресеты стиля</h3>
-        <p>Пять готовых; свои сохраняются и удаляются в один клик. Хранятся простым JSON.</p>
-      </div>
+<main>
+  <section class="shell" id="modes">
+    <div class="section-head"><h2>Два режима. Одна очередь.</h2><p>Выберите контроль, который нужен именно этому пакету. Настройки стиля и пакетная обработка доступны в обоих режимах.</p></div>
+    <div class="mode-pair">
+      <article class="mode"><span class="mode-mark">AUTO</span><h3>От файлов сразу к результату</h3><p>Добавьте пачку и запустите. AISubs последовательно распознаёт речь и рендерит каждый ролик без остановок на проверку.</p><ul><li>минимум действий для чистых исходников;</li><li>прогресс и ошибка видны по каждому файлу;</li><li>остановка срабатывает после текущего файла.</li></ul></article>
+      <article class="mode"><span class="mode-mark">MANUAL</span><h3>Проверка до дорогого рендера</h3><p>Редактируйте слова и тайминги по мере готовности, массово одобряйте чистые файлы и отправляйте подтверждённую часть в один рендер.</p><ul><li>предупреждения о неуверенно распознанных словах;</li><li>автосохранение правок и восстановление пакета;</li><li>повтор ошибок без перезапуска всей очереди.</li></ul></article>
     </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Интерфейс по частям</h2>
-    <p class="lead">Окно поделено на три колонки: слева — что обрабатываем,
-       в центре — как это выглядит, справа — как это настроить.</p>
-
-    <div class="panel">
-      <img src="ui-input.png" alt="Левая панель: очередь видео и настройки распознавания">
-      <div>
-        <h3>Слева: видео и распознавание</h3>
-        <p class="role">что обрабатываем</p>
-        <dl>
-          <dt>Очередь видео</dt>
-          <dd>Перетащите файлы в окно или нажмите на зону выбора. Роликов может
-              быть сколько угодно — они обработаются по очереди. Кружок слева от
-              имени показывает состояние: ожидает, обрабатывается, готово или
-              ошибка. Клик по строке открывает файл в плеере, крестик убирает
-              из очереди.</dd>
-
-          <dt>Модель Whisper</dt>
-          <dd>От <code>large-v3</code> (лучшее качество) до <code>base</code>
-              (черновик). Подсказка под списком говорит, скачана ли модель и
-              сколько весит загрузка, если нет. Скачивание идёт при запуске
-              обработки и показывает проценты.</dd>
-
-          <dt>Язык</dt>
-          <dd>Автоопределение или явный выбор. Явный язык надёжнее, когда в
-              ролике есть иностранные вкрапления — иначе распознавание может
-              переключиться на них.</dd>
-
-          <dt>Устройство</dt>
-          <dd>По умолчанию видеокарта с откатом на процессор, если она не
-              подошла. Можно задать жёстко. В правом верхнем углу окна написано,
-              какая видеокарта найдена.</dd>
-        </dl>
-      </div>
-    </div>
-
-    <div class="panel">
-      <img src="ui-preview.png" alt="Центральная панель: предпросмотр на кадре видео">
-      <div>
-        <h3>В центре: предпросмотр</h3>
-        <p class="role">как это выглядит</p>
-        <dl>
-          <dt>Кадр из вашего видео</dt>
-          <dd>Не абстрактная картинка, а настоящий кадр в масштабе 1:1. Размер
-              шрифта, отступы и перенос строк видны такими, какими лягут в
-              результат — подбирать можно не запуская рендер.</dd>
-
-          <dt>Рамка текстового поля</dt>
-          <dd>Пунктиром показана область, доступная под текст, а подпись рядом —
-              её размер в пикселях исходного видео. Сразу видно, сколько места
-              осталось и не упрётся ли текст в края.</dd>
-
-          <dt>Сколько слов помещается</dt>
-          <dd>Предпросмотр показывает ровно столько слов, сколько поместит
-              движок при текущих настройках — если строка вмещает два слова, их
-              и будет два.</dd>
-        </dl>
-      </div>
-    </div>
-
-    <div class="panel">
-      <img src="ui-presets.png" alt="Галерея пресетов и поле сохранения">
-      <div>
-        <h3>Ниже: пресеты</h3>
-        <p class="role">готовые стили</p>
-        <dl>
-          <dt>Галерея</dt>
-          <dd>Пять готовых стилей: плашка в духе VK-роликов, караоке, жирный
-              заголовочный, минимальный и розовая плашка. Клик применяет стиль
-              целиком.</dd>
-
-          <dt>Сохранение и удаление</dt>
-          <dd>Введите название и нажмите «Сохранить» — стиль появится в галерее.
-              Удалить: наведите на карточку и нажмите крестик, затем
-              подтвердите. Пресеты лежат в папке <code>presets/</code> обычными
-              JSON-файлами, их можно править руками и передавать другим.</dd>
-        </dl>
-      </div>
-    </div>
-
-    <div class="panel">
-      <img src="ui-style.png" alt="Правая панель: шрифт, размер, регистр, цвет, обводка, тень">
-      <div>
-        <h3>Справа: шрифт и текст</h3>
-        <p class="role">как это настроить</p>
-        <dl>
-          <dt>Шрифт с поиском</dt>
-          <dd>Все шрифты системы плюс комплектные. Число рядом с заголовком —
-              сколько сейчас в списке. Переключатель «Только с кириллицей»
-              оставляет те, что реально умеют русские буквы: проверяются сами
-              глифы, а не название.</dd>
-
-          <dt>Размер шрифта</dt>
-          <dd>В пикселях исходного видео, а не экрана. Для вертикального ролика
-              1080×1920 обычно 80–110.</dd>
-
-          <dt>Регистр</dt>
-          <dd>ЗАГЛАВНЫЕ, строчные или как распознано. Последний вариант
-              сохраняет заглавные буквы в именах и начале предложений.</dd>
-
-          <dt>Цвет текста, обводка, тень</dt>
-          <dd>Цвет задаётся палитрой или кодом. Обводка нужна на пёстром фоне,
-              тень мягче — у неё отдельно настраиваются размытие и
-              прозрачность.</dd>
-        </dl>
-      </div>
-    </div>
-
-    <div class="panel">
-      <img src="ui-style-2.png" alt="Настройки подсветки слова и положения блока">
-      <div>
-        <h3>Справа ниже: подсветка и положение</h3>
-        <p class="role">главное отличие от обычных субтитров</p>
-        <dl>
-          <dt>Тип выделения слова</dt>
-          <dd><b>Плашка</b> — цветной прямоугольник под текущим словом.
-              <b>Цвет</b> — слово просто меняет цвет, классическое караоке.
-              <b>Без</b> — обычные субтитры без подсветки.</dd>
-
-          <dt>Цвет плашки и текста на ней</dt>
-          <dd>Отдельные цвета: на светлой плашке белый текст читается плохо,
-              поэтому активное слово можно делать тёмным.</dd>
-
-          <dt>Скругление и отступы</dt>
-          <dd>Скругление углов плашки и её поля вокруг слова по горизонтали и
-              вертикали. Высота плашки при этом остаётся постоянной по всей
-              строке, даже если у слов разные «хвосты».</dd>
-
-          <dt>Позиция и отступ от края</dt>
-          <dd>Верх, центр или низ кадра плюс отступ в пикселях исходника. Для
-              вертикальных роликов низ обычно поднимают на 150–250, чтобы текст
-              не попал под интерфейс соцсети.</dd>
-
-          <dt>Строк максимум и ширина блока</dt>
-          <dd>Сколько строк показывать одновременно и какую долю ширины кадра
-              занимать. Чем меньше строк, тем короче реплики и быстрее темп.</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Типографика без ручной правки</h2>
-    <p class="lead">Мелочи, из-за которых обычно приходится поправлять субтитры вручную.</p>
-    <div class="grid">
-      <div class="card">
-        <h3>Предлоги не висят</h3>
-        <p>«в», «и», «на», «что» переносятся вместе со следующим словом и никогда не показываются отдельным кадром.</p>
-      </div>
-      <div class="card">
-        <h3>Плашка выровнена оптически</h3>
-        <p>Строится по заглавным буквам, поэтому слова с хвостами (Д, Ц, Щ, У) не съезжают, а высота не скачет по строке.</p>
-      </div>
-      <div class="card">
-        <h3>Текст не вылезает за кадр</h3>
-        <p>При крупном шрифте или длинном слове строка ужимается ровно настолько, чтобы уместиться.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Как всё устроено</h2>
-    <p class="lead">Два независимых шага: распознать речь и нарисовать субтитры.
-       Разделение сделано специально — стиль можно перебирать сколько угодно,
-       речь распознаётся один раз.</p>
-
-    <svg class="flow" viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" role="img"
-         aria-label="Схема: видео идёт в распознавание речи, результат кэшируется, затем отрисовка субтитров и сборка видео">
-      <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-          <path d="M0,0 L10,5 L0,10 z" fill="#4fb2ff"/>
-        </marker>
-        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#4fb2ff"/><stop offset="100%" stop-color="#9b5cff"/>
-        </linearGradient>
-      </defs>
-
-      <rect x="10" y="90" width="140" height="60" rx="12" fill="#1b1f2c" stroke="#262b3a"/>
-      <text x="80" y="118" fill="#eef0f6" font-size="14" text-anchor="middle">Ваше видео</text>
-      <text x="80" y="136" fill="#9099b0" font-size="11" text-anchor="middle">mp4, mov, mkv…</text>
-
-      <rect x="200" y="80" width="180" height="80" rx="12" fill="#151822" stroke="#4fb2ff"/>
-      <text x="290" y="110" fill="#eef0f6" font-size="14" text-anchor="middle">Распознавание</text>
-      <text x="290" y="130" fill="#9099b0" font-size="11" text-anchor="middle">Whisper на GPU</text>
-      <text x="290" y="147" fill="#9099b0" font-size="11" text-anchor="middle">тайминг каждого слова</text>
-
-      <rect x="200" y="196" width="180" height="48" rx="12" fill="#1b1f2c" stroke="#262b3a" stroke-dasharray="4 3"/>
-      <text x="290" y="216" fill="#eef0f6" font-size="13" text-anchor="middle">кэш words.json</text>
-      <text x="290" y="233" fill="#9099b0" font-size="11" text-anchor="middle">повторно не считается</text>
-
-      <rect x="430" y="80" width="180" height="80" rx="12" fill="#151822" stroke="#9b5cff"/>
-      <text x="520" y="110" fill="#eef0f6" font-size="14" text-anchor="middle">Отрисовка</text>
-      <text x="520" y="130" fill="#9099b0" font-size="11" text-anchor="middle">кадры с текстом,</text>
-      <text x="520" y="147" fill="#9099b0" font-size="11" text-anchor="middle">плашкой и тенью</text>
-
-      <rect x="430" y="196" width="180" height="48" rx="12" fill="#1b1f2c" stroke="#262b3a" stroke-dasharray="4 3"/>
-      <text x="520" y="216" fill="#eef0f6" font-size="13" text-anchor="middle">стиль / пресет</text>
-      <text x="520" y="233" fill="#9099b0" font-size="11" text-anchor="middle">меняется мгновенно</text>
-
-      <rect x="660" y="80" width="150" height="80" rx="12" fill="#151822" stroke="#262b3a"/>
-      <text x="735" y="112" fill="#eef0f6" font-size="14" text-anchor="middle">Сборка</text>
-      <text x="735" y="132" fill="#9099b0" font-size="11" text-anchor="middle">ffmpeg, H.264</text>
-
-      <rect x="838" y="90" width="52" height="60" rx="12" fill="url(#g1)"/>
-      <text x="864" y="118" fill="#08111f" font-size="12" font-weight="700" text-anchor="middle">MP4</text>
-      <text x="864" y="134" fill="#08111f" font-size="10" text-anchor="middle">готово</text>
-
-      <line x1="152" y1="120" x2="196" y2="120" stroke="#4fb2ff" stroke-width="2" marker-end="url(#arrow)"/>
-      <line x1="382" y1="120" x2="426" y2="120" stroke="#4fb2ff" stroke-width="2" marker-end="url(#arrow)"/>
-      <line x1="612" y1="120" x2="656" y2="120" stroke="#4fb2ff" stroke-width="2" marker-end="url(#arrow)"/>
-      <line x1="812" y1="120" x2="834" y2="120" stroke="#4fb2ff" stroke-width="2" marker-end="url(#arrow)"/>
-      <line x1="290" y1="162" x2="290" y2="192" stroke="#3a4155" stroke-width="2" marker-end="url(#arrow)"/>
-      <line x1="520" y1="192" x2="520" y2="164" stroke="#3a4155" stroke-width="2" marker-end="url(#arrow)"/>
-    </svg>
-
-    <div class="grid">
-      <div class="card">
-        <h3>Распознавание</h3>
-        <p>Whisper через faster-whisper выдаёт не просто текст, а время начала и
-           конца каждого слова — именно это позволяет подсвечивать слово в такт
-           речи. Считается на видеокарте, при её отсутствии на процессоре.</p>
-      </div>
-      <div class="card">
-        <h3>Кэш расшифровки</h3>
-        <p>Результат сохраняется рядом с проектом. Поменяли шрифт или цвет —
-           повторный рендер занимает секунды, речь заново не распознаётся.</p>
-      </div>
-      <div class="card">
-        <h3>Отрисовка</h3>
-        <p>Каждое состояние строки рисуется как картинка поверх кадра: текст,
-           обводка, тень и плашка. Здесь же работают правила переносов и
-           оптическое выравнивание плашки.</p>
-      </div>
-      <div class="card">
-        <h3>Сборка</h3>
-        <p>Кадры накладываются на исходное видео и кодируются в H.264 со звуком
-           оригинала. Разрешение и частота кадров сохраняются.</p>
-      </div>
-      <div class="card">
-        <h3>Интерфейс</h3>
-        <p>Нативное окно Windows, внутри — HTML-страница. Никакого браузера
-           ставить не нужно, всё работает на встроенном движке системы.</p>
-      </div>
-      <div class="card">
-        <h3>Ничего наружу</h3>
-        <p>Единственные обращения в сеть — разовая загрузка модели и шрифтов при
-           установке. Сами видео и расшифровки никуда не отправляются.</p>
-      </div>
-    </div>
-
-    <div class="note">
-      <b>Почему это важно для монтажа.</b> Распознавание — самая долгая часть, и
-      она отделена от оформления. Можно распознать пачку роликов один раз, а
-      потом за минуту перебрать десяток стилей и выбрать подходящий, не трогая
-      видеокарту повторно.
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Установка</h2>
-    <p class="lead">Python и ffmpeg ставить отдельно не нужно — установщик принесёт их в папку проекта.</p>
-    <ol class="steps">
-      <li>Скачайте репозиторий:
-        <pre><code>git clone https://github.com/jimmorisedu-boop/aisubs-local.git</code></pre>
-      </li>
-      <li>Запустите <code>setup.bat</code> — поставит Python, ffmpeg, библиотеки
-          CUDA (если есть видеокарта NVIDIA) и предложит на выбор модель
-          распознавания: от <code>small</code> (~500 МБ) до
-          <code>large-v3</code> (~3 ГБ).</li>
-      <li>Запустите <code>run.bat</code> — откроется окно приложения.</li>
-      <li>Перетащите видео и нажмите «Создать субтитры». Если от модели вы
-          отказались, она скачается сама при первой обработке — дальше всё
-          работает офлайн.</li>
-    </ol>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Требования</h2>
-    <table>
-      <tr><td>Операционная система</td><td>Windows 10 или 11, 64 бита</td></tr>
-      <tr><td>Видеокарта</td><td>NVIDIA с CUDA — желательно. Без неё работает на процессоре, но медленнее</td></tr>
-      <tr><td>Место на диске</td><td>около 5 ГБ: окружение и модель распознавания</td></tr>
-      <tr><td>Интернет</td><td>только для установки и разовой загрузки модели</td></tr>
-    </table>
-  </div>
-</section>
-
-<footer>
-  <div class="wrap">
-    Код под лицензией MIT ·
-    <a href="https://github.com/jimmorisedu-boop/aisubs-local">github.com/jimmorisedu-boop/aisubs-local</a>
-  </div>
-</footer>
-
+    <figure class="product-shot auto-proof"><img src="screenshot.png" alt="Auto Mode AISubs: очередь из четырёх видео, живой предпросмотр субтитров и настройки стиля" width="1440" height="900" loading="lazy"><figcaption><strong>Auto Mode — весь пакет без остановок</strong><span>Стиль настраивается до запуска</span></figcaption></figure>
+  </section>
+  <section class="shell" id="workflow"><div class="section-head"><h2>Рабочий процесс студии</h2><p>Транскрипция и проверка не блокируют друг друга: можно разбирать готовые ролики, пока очередь продолжает работу.</p></div><ol class="workflow-list"><li><span class="step-number">01</span><strong>Добавьте пакет</strong><span>Перетащите все исходники в одну очередь.</span></li><li><span class="step-number">02</span><strong>Проверяйте готовое</strong><span>Открывайте транскрипты сразу после распознавания.</span></li><li><span class="step-number">03</span><strong>Одобрите чистое</strong><span>Подтвердите один файл или всё без предупреждений.</span></li><li><span class="step-number">04</span><strong>Рендерите вместе</strong><span>Запустите одобренные ролики одной пакетной командой.</span></li></ol></section>
+  <section class="shell" id="trust"><div class="trust-grid"><h2>Предсказуемо для рабочего проекта</h2><dl class="trust-list"><div class="trust-row"><dt>Локально</dt><dd>Видео, звук и транскрипты не отправляются в облачный сервис. Сеть нужна для установки и первой загрузки модели.</dd></div><div class="trust-row"><dt>Правки без потери ритма</dt><dd>Замена текста сохраняет пословные тайминги; при необходимости начало и конец слова редактируются вручную.</dd></div><div class="trust-row"><dt>Без перезаписи</dt><dd>Если имя результата уже занято, AISubs планирует безопасное новое имя вместо молчаливой замены файла.</dd></div><div class="trust-row"><dt>После перезапуска</dt><dd>Черновики, одобренные версии и состояние последнего Manual-пакета восстанавливаются с диска.</dd></div></dl></div></section>
+  <section class="shell" id="quick-start"><div class="quick-start"><div><h2>Запуск без отдельной сборки</h2><p>Windows-установщик разворачивает локальный Python, ffmpeg и зависимости. Модель можно выбрать при установке или скачать при первом запуске обработки.</p><a class="secondary-cta" href="https://github.com/jimmorisedu-boop/aisubs-local#установка">Открыть инструкцию</a></div><pre class="command" aria-label="Команды запуска"><code>setup.bat <span class="arrow">→</span> run.bat</code></pre></div></section>
+</main>
+<footer class="shell foot-stmt" id="site-footer"><p class="foot-stmt__line">Меньше ожидания между монтажом и готовым пакетом.</p><div class="foot-stmt__meta"><div class="footer-links"><a href="https://github.com/jimmorisedu-boop/aisubs-local">GitHub</a><a href="https://github.com/jimmorisedu-boop/aisubs-local#readme">README</a><a href="https://github.com/jimmorisedu-boop/aisubs-local/blob/main/LICENSE">MIT</a><span>Windows 10 / 11</span></div><a class="channel" href="https://t.me/daipotestit">Проект и обновления: @daipotestit ↗</a></div></footer>
 </body>
 </html>
