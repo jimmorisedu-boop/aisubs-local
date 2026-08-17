@@ -11,6 +11,7 @@ import queue
 import threading
 import traceback
 import subprocess
+import webbrowser
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
@@ -28,6 +29,7 @@ from lib.transcript_revisions import RevisionConflict, TranscriptError, Validati
 PRESETS_DIR = os.path.join(BASE_DIR, "presets")
 OUTPUT_DIR = os.path.join(BASE_DIR, "output")
 REVISIONS_DIR = os.path.join(BASE_DIR, "cache", "revisions")
+CREATOR_CHANNEL_URL = "https://t.me/daipotestit"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 VIDEO_EXTS = {".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v", ".wmv", ".flv", ".mpg", ".mpeg", ".ts"}
@@ -212,6 +214,14 @@ class Api:
         target = os.path.dirname(path) if path and os.path.isfile(path) else OUTPUT_DIR
         os.startfile(target)
         return True
+
+    def open_creator_channel(self):
+        try:
+            if not webbrowser.open(CREATOR_CHANNEL_URL, new=2):
+                return {"ok": False, "error": "Не удалось открыть браузер"}
+            return {"ok": True}
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
 
     # ---------- system info ----------
 
