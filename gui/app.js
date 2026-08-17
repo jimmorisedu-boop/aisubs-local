@@ -760,6 +760,10 @@ function showToast(message) {
   setTimeout(() => toast.remove(), 6000);
 }
 
+async function openCreatorChannel() {
+  return CreatorChannel.openCreatorChannel(api(), showToast);
+}
+
 window.onPipelineError = function (message) {
   if (!isRunning) $("runBtn").disabled = false;
   setProgress("Ошибка", null);
