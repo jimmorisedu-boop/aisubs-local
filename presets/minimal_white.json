@@ -1,0 +1,32 @@
+{
+  "name": "Minimal white",
+  "font": "fonts/FiraSans-Medium.ttf",
+  "font_size": 60,
+  "text_case": "none",
+
+  "text_color": "#FFFFFF",
+  "stroke_color": "#000000",
+  "stroke_width": 2,
+
+  "shadow_enabled": true,
+  "shadow_color": "#000000",
+  "shadow_opacity": 0.35,
+  "shadow_blur": 4,
+  "shadow_offset": [0, 2],
+
+  "highlight_style": "color",
+  "word_highlight_color": "#9FD8FF",
+  "active_text_color": "#FFFFFF",
+  "box_color": "#000000",
+  "box_opacity": 0.0,
+  "box_radius": 10,
+  "box_padding_x": 12,
+  "box_padding_y": 6,
+
+  "line_count": 2,
+  "max_width_ratio": 0.8,
+  "line_spacing": 1.25,
+
+  "position": "bottom",
+  "position_margin": 120
+}

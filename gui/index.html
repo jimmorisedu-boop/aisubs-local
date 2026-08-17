@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>AISubs</title>
+<style>
+@font-face { font-family: "Montserrat"; src: url("../fonts/Montserrat-var.ttf"); font-weight: 100 900; }
+@font-face { font-family: "Oswald"; src: url("../fonts/Oswald-var.ttf"); font-weight: 200 700; }
+@font-face { font-family: "Rubik"; src: url("../fonts/Rubik-var.ttf"); font-weight: 300 900; }
+@font-face { font-family: "Fira Sans ExtraBold"; src: url("../fonts/FiraSans-ExtraBold.ttf"); }
+@font-face { font-family: "Fira Sans Black"; src: url("../fonts/FiraSans-Black.ttf"); }
+@font-face { font-family: "Fira Sans Medium"; src: url("../fonts/FiraSans-Medium.ttf"); }
+@font-face { font-family: "PT Sans Bold"; src: url("../fonts/PTSans-Bold.ttf"); }
+@font-face { font-family: "Bebas Neue"; src: url("../fonts/BebasNeue-Regular.ttf"); }
+@font-face { font-family: "Poppins ExtraBold"; src: url("../fonts/Poppins-ExtraBold.ttf"); }
+@font-face { font-family: "Poppins Black"; src: url("../fonts/Poppins-Black.ttf"); }
+@font-face { font-family: "Anton"; src: url("../fonts/Anton-Regular.ttf"); }
+@font-face { font-family: "Archivo Black"; src: url("../fonts/ArchivoBlack-Regular.ttf"); }
+@font-face { font-family: "Bangers"; src: url("../fonts/Bangers-Regular.ttf"); }
+@font-face { font-family: "UI Sans"; src: local("Segoe UI"); }
+
+:root{
+  --bg: #0c0e13;
+  --panel: #151822;
+  --panel-2: #1b1f2c;
+  --border: #262b3a;
+  --text: #eef0f6;
+  --text-dim: #9099b0;
+  --accent: #4fb2ff;
+  --accent-2: #9b5cff;
+  --accent-grad: linear-gradient(135deg, #4fb2ff, #9b5cff);
+  --good: #2be55b;
+  --danger: #ff4d5e;
+  --radius: 14px;
+}
+
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "UI Sans", "Segoe UI", sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.app{
+  display:grid;
+  grid-template-rows: 56px 1fr 84px;
+  height:100vh;
+}
+
+/* ---------- header ---------- */
+.header{
+  display:flex; align-items:center; gap:12px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  -webkit-app-region: drag;
+}
+.logo{
+  font-weight:800; font-size:16px; letter-spacing:.3px;
+  background: var(--accent-grad);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.logo-sub{ color:var(--text-dim); font-size:12px; }
+.spacer{ flex:1; }
+.gpu-badge{
+  display:flex; align-items:center; gap:8px;
+  padding:6px 12px; border-radius:999px;
+  background: var(--panel-2); border:1px solid var(--border);
+  font-size:12px; color: var(--text-dim);
+  -webkit-app-region: no-drag;
+}
+.dot{ width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good); }
+
+/* ---------- main layout ---------- */
+.main{
+  display:grid;
+  grid-template-columns: 360px 1fr 380px;
+  gap:1px;
+  background: var(--border);
+  overflow:hidden;
+}
+.col{
+  background: var(--bg);
+  padding:18px;
+  overflow-y:auto;
+}
+.col::-webkit-scrollbar{ width:8px; }
+.col::-webkit-scrollbar-thumb{ background:var(--border); border-radius:4px; }
+
+h3{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim); margin:0 0 12px; font-weight:700; }
+.section{ margin-bottom:26px; }
+
+/* ---------- drop zone / video ---------- */
+.dropzone{
+  border:1.5px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 26px 16px;
+  text-align:center;
+  cursor:pointer;
+  transition:.15s;
+  color: var(--text-dim);
+}
+.dropzone:hover{ border-color: var(--accent); color:var(--text); background:rgba(79,178,255,0.05); }
+.dropzone svg{ opacity:.6; margin-bottom:8px; }
+
+/* drag & drop feedback - the drop is handled natively by the window, so the
+   body class is toggled from Python rather than by HTML5 drag events */
+body.dragging .dropzone{
+  border-color: var(--accent); border-style:solid;
+  background:rgba(79,178,255,0.12); color:var(--text);
+  transform: scale(1.01);
+}
+body.dragging .dropzone svg{ opacity:1; }
+.drop-overlay{
+  position:fixed; inset:0; z-index:60;
+  background:rgba(12,14,19,0.82);
+  border:3px dashed var(--accent);
+  display:none; align-items:center; justify-content:center;
+  flex-direction:column; gap:12px;
+  font-size:20px; font-weight:800; color:var(--text);
+  pointer-events:none;
+}
+body.dragging .drop-overlay{ display:flex; }
+.drop-overlay .sub{ font-size:13px; font-weight:500; color:var(--text-dim); }
+.video-wrap{ border-radius: var(--radius); overflow:hidden; background:#000; position:relative; }
+video{ width:100%; display:block; max-height:340px; background:#000; }
+.dropzone-hint{ font-size:11.5px; opacity:.7; margin-top:4px; }
+.field-hint{ font-size:11px; color:var(--text-dim); margin-top:6px; line-height:1.4; opacity:.85; }
+.font-count{ color:var(--accent); font-weight:700; }
+.queue-count{ color:var(--accent); font-weight:700; }
+
+.file-list{ margin-top:10px; display:flex; flex-direction:column; gap:6px; max-height:210px; overflow-y:auto; }
+.file-row{
+  display:flex; align-items:center; gap:9px;
+  padding:8px 10px; background:var(--panel); border-radius:10px;
+  font-size:12px; color:var(--text-dim); border:1px solid transparent; cursor:pointer;
+}
+.file-row:hover{ border-color:var(--border); }
+.file-row.selected{ border-color:var(--accent); }
+.file-row.active{ border-color:var(--accent); background:rgba(79,178,255,0.08); }
+.file-row .name{
+  flex:1; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.file-row .status{ font-size:15px; line-height:1; flex:0 0 auto; }
+.file-row.done .status{ color:var(--good); }
+.file-row.failed .status{ color:var(--danger); }
+.file-row .remove{
+  background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:16px;
+  padding:0 2px; line-height:1; flex:0 0 auto;
+}
+.file-row .remove:hover{ color:var(--danger); }
+.file-row .mini-bar{ flex:0 0 46px; height:4px; background:var(--panel-2); border-radius:2px; overflow:hidden; }
+.file-row .mini-fill{ height:100%; width:0%; background:var(--accent-grad); transition:width .25s; }
+
+.add-more-btn{
+  width:100%; margin-top:8px; background:var(--panel-2); border:1px dashed var(--border);
+  color:var(--text-dim); padding:8px; border-radius:10px; cursor:pointer; font-size:12.5px;
+}
+.add-more-btn:hover{ border-color:var(--accent); color:var(--text); }
+
+/* ---------- form controls ---------- */
+label{ display:block; font-size:12px; color:var(--text-dim); margin: 14px 0 6px; }
+label:first-child{ margin-top:0; }
+.row{ display:flex; gap:10px; }
+.row > *{ flex:1; }
+
+select, .btn, input[type=text]{
+  width:100%;
+  background: var(--panel-2);
+  border:1px solid var(--border);
+  color: var(--text);
+  padding:9px 10px;
+  border-radius:10px;
+  font-size:13px;
+  outline:none;
+  transition:.15s;
+}
+select:hover, input[type=text]:hover{ border-color:#3a4155; }
+select:focus, input[type=text]:focus{ border-color: var(--accent); }
+
+input[type=range]{
+  width:100%; -webkit-appearance:none; background:transparent; height:20px;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:4px; border-radius:2px; background: var(--panel-2);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:16px; height:16px; margin-top:-6px;
+  border-radius:50%; background: var(--accent); border:2px solid #0c0e13;
+  box-shadow:0 0 0 1px var(--accent);
+}
+.range-val{ float:right; color:var(--text); font-variant-numeric: tabular-nums; }
+
+input[type=color]{
+  -webkit-appearance:none; width:36px; height:32px; padding:0; border:1px solid var(--border);
+  border-radius:8px; background:none; cursor:pointer;
+}
+input[type=color]::-webkit-color-swatch-wrapper{ padding:2px; }
+input[type=color]::-webkit-color-swatch{ border-radius:6px; border:none; }
+
+.color-row{ display:flex; align-items:center; gap:10px; }
+.color-row input[type=text]{ flex:1; font-family:monospace; text-transform:uppercase; }
+
+.toggle-group{ display:flex; background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:3px; gap:3px; }
+.toggle-group button{
+  flex:1; background:none; border:none; color:var(--text-dim); padding:8px 6px; border-radius:8px;
+  font-size:12.5px; cursor:pointer; transition:.15s; font-weight:600;
+}
+.toggle-group button.active{ background: var(--accent-grad); color:#08111f; }
+
+.switch-row{ display:flex; align-items:center; justify-content:space-between; margin:14px 0 6px; }
+.switch-row label{ margin:0; }
+.switch{ position:relative; width:38px; height:22px; }
+.switch input{ opacity:0; width:0; height:0; }
+.slider-toggle{ position:absolute; inset:0; background:var(--panel-2); border:1px solid var(--border); border-radius:22px; cursor:pointer; transition:.15s; }
+.slider-toggle:before{ content:""; position:absolute; width:16px; height:16px; left:2px; top:2px; background:var(--text-dim); border-radius:50%; transition:.15s; }
+.switch input:checked + .slider-toggle{ background: var(--accent-grad); border-color:transparent; }
+.switch input:checked + .slider-toggle:before{ transform:translateX(16px); background:#08111f; }
+
+/* ---------- presets ---------- */
+.preset-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+.preset-card{
+  background: var(--panel); border:1.5px solid var(--border); border-radius:12px;
+  padding:10px; cursor:pointer; transition:.15s; text-align:center;
+}
+.preset-card:hover{ border-color:#3a4155; transform:translateY(-1px); }
+.preset-card.active{ border-color: var(--accent); box-shadow:0 0 0 1px var(--accent); }
+.preset-thumb{
+  border-radius:8px; background:#05070a; height:64px; display:flex; align-items:center; justify-content:center;
+  margin-bottom:8px; overflow:hidden;
+}
+.preset-name{ font-size:11.5px; color:var(--text-dim); font-weight:600; }
+.preset-card.active .preset-name{ color:var(--text); }
+.preset-card{ position:relative; }
+.preset-del{
+  position:absolute; top:6px; right:6px;
+  background:rgba(0,0,0,0.45); border:1px solid var(--border); color:var(--text-dim);
+  border-radius:8px; cursor:pointer; font-size:12px; line-height:1;
+  padding:3px 6px; opacity:0; transition:.15s;
+}
+.preset-card:hover .preset-del{ opacity:1; }
+.preset-del:hover{ border-color:var(--danger); color:var(--danger); }
+.preset-card.confirm-delete .preset-del{
+  opacity:1; background:var(--danger); border-color:var(--danger); color:#fff; font-weight:700;
+}
+
+/* ---------- live preview ---------- */
+/* Holder has a definite height; JS fits the stage inside it to the video's
+   aspect ratio. Letting CSS derive size from aspect-ratio inside a flex column
+   collapses the box to a few pixels wide. */
+.preview-holder{
+  height: min(620px, 66vh);
+  min-height: 320px;
+  flex: none;               /* otherwise the presets below shrink it to min-height */
+  display:flex; align-items:center; justify-content:center;
+}
+.preview-stage{
+  background:#07080b center/contain no-repeat;
+  border-radius: var(--radius);
+  border:1px solid var(--border);
+  display:flex; align-items:flex-end; justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+/* shown until a video is loaded, so the empty state is not a blank box */
+.preview-stage.no-frame{
+  background-image: repeating-conic-gradient(#14161c 0% 25%, #0e1015 0% 50%);
+  background-size: 20px 20px;
+}
+/* No padding here: the width available to text must match what the renderer
+   uses (max_width_ratio of the frame), or the preview wraps sooner than the
+   real output and misleads font-size tuning. */
+.preview-line{
+  display:flex; flex-wrap:wrap; gap:0.3em; justify-content:center;
+  padding: 0; max-width:100%;
+  line-height:1.15;
+}
+.preview-word{ white-space:nowrap; }
+
+/* The area text may occupy: max_width_ratio wide, line_count lines tall. */
+.text-box{
+  position:absolute;
+  border:1px dashed rgba(79,178,255,.55);
+  border-radius:3px;
+  pointer-events:none;
+}
+.text-box-size{
+  position:absolute; top:-9px; right:0;
+  transform:translateY(-100%);
+  font-size:10px; color:var(--accent);
+  background:rgba(7,8,11,.75); padding:1px 5px; border-radius:4px;
+  white-space:nowrap;
+}
+.preview-empty{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color:var(--text-dim); font-size:12.5px; text-align:center; padding:0 24px; pointer-events:none;
+}
+.preview-stage:not(.no-frame) .preview-empty{ display:none; }
+
+/* ---------- run bar ---------- */
+.footer{
+  border-top:1px solid var(--border);
+  display:flex; align-items:center; gap:16px;
+  padding: 0 20px;
+  background: var(--panel);
+}
+.run-btn{
+  background: var(--accent-grad); color:#08111f; border:none; font-weight:800; font-size:14px;
+  padding: 13px 28px; border-radius:12px; cursor:pointer; transition:.15s; white-space:nowrap;
+  box-shadow: 0 4px 20px rgba(79,178,255,0.25);
+}
+.run-btn:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+.run-btn:disabled{ opacity:.5; cursor:default; transform:none; filter:none; }
+.progress-wrap{ flex:1; }
+.progress-label{ display:flex; justify-content:space-between; font-size:12px; color:var(--text-dim); margin-bottom:6px; }
+.progress-track{ height:8px; background:var(--panel-2); border-radius:4px; overflow:hidden; }
+.progress-fill{ height:100%; width:0%; background: var(--accent-grad); transition: width .25s ease; }
+.result-actions{ display:flex; gap:8px; }
+.result-actions button{
+  background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:9px 14px;
+  border-radius:10px; cursor:pointer; font-size:12.5px; font-weight:600; white-space:nowrap;
+}
+.result-actions button:hover{ border-color:var(--accent); }
+.hidden{ display:none !important; }
+.toast{
+  position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+  background:var(--panel-2); border:1px solid var(--danger); color:var(--text);
+  padding:10px 16px; border-radius:10px; font-size:13px; z-index:50;
+}
+</style>
+</head>
+<body>
+<div class="drop-overlay">
+  <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+  <div>Отпустите — добавим в очередь</div>
+  <div class="sub">видео файлы: mp4, mov, mkv, avi, webm</div>
+</div>
+<div class="app">
+
+  <div class="header">
+    <div>
+      <div class="logo">AISubs</div>
+    </div>
+    <div class="logo-sub">локальные субтитры с подсветкой слов</div>
+    <div class="spacer"></div>
+    <div class="gpu-badge"><span class="dot" id="gpuDot"></span><span id="gpuLabel">определение GPU...</span></div>
+  </div>
+
+  <div class="main">
+
+    <!-- LEFT: video + transcription -->
+    <div class="col">
+      <div class="section">
+        <h3>Видео <span id="queueCount" class="queue-count"></span></h3>
+        <div id="dropzone" class="dropzone">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <div>Перетащите видео сюда</div>
+          <div class="dropzone-hint">или нажмите, чтобы выбрать — можно сразу несколько</div>
+        </div>
+        <div id="videoWrapHidden" class="hidden">
+          <div class="video-wrap"><video id="preview" controls></video></div>
+          <div class="file-list" id="fileList"></div>
+          <button class="add-more-btn" onclick="pickVideos()">+ Добавить ещё видео</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Распознавание речи</h3>
+        <label>Модель Whisper</label>
+        <select id="modelSize">
+          <option value="large-v3" selected>large-v3 — максимальное качество</option>
+          <option value="distil-large-v3">distil-large-v3 — быстрее, почти так же точно</option>
+          <option value="medium">medium — баланс</option>
+          <option value="small">small — быстро</option>
+          <option value="base">base — черновой вариант</option>
+        </select>
+
+        <label>Язык</label>
+        <select id="language">
+          <option value="" selected>Автоопределение</option>
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+          <option value="uk">Українська</option>
+          <option value="es">Español</option>
+          <option value="de">Deutsch</option>
+          <option value="fr">Français</option>
+        </select>
+
+        <label>Устройство</label>
+        <select id="device">
+          <option value="auto" selected>Авто (GPU, иначе CPU)</option>
+          <option value="cuda">Только GPU (CUDA)</option>
+          <option value="cpu">Только CPU</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- CENTER: live preview -->
+    <div class="col" style="display:flex; flex-direction:column;">
+      <h3>Предпросмотр стиля</h3>
+      <div class="preview-holder" id="previewHolder">
+        <div class="preview-stage no-frame" id="previewStage">
+          <div class="preview-empty">Добавьте видео — предпросмотр покажет кадр из него<br>с субтитрами в выбранном стиле</div>
+          <div class="text-box" id="textBox"><span class="text-box-size" id="textBoxSize"></span></div>
+          <div class="preview-line" id="previewLine"></div>
+        </div>
+      </div>
+      <div style="text-align:center; color:var(--text-dim); font-size:11.5px; margin-top:10px;">
+        <span id="previewHint">Кадр из видео в масштабе 1:1 — так субтитры лягут на самом деле</span>
+      </div>
+
+      <div class="section" style="margin-top:22px;">
+        <h3>Пресеты</h3>
+        <div class="preset-grid" id="presetGrid"></div>
+        <label style="margin-top:14px;">Название для сохранения</label>
+        <div class="row">
+          <input type="text" id="presetSaveName" placeholder="мой стиль">
+          <button class="btn" style="flex:0 0 auto; width:auto; padding:9px 14px;" onclick="savePreset()">Сохранить</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: style editor -->
+    <div class="col">
+      <h3>Настройки стиля</h3>
+
+      <div class="section">
+        <label>Шрифт <span class="font-count" id="fontCount"></span></label>
+        <input type="text" id="fontSearch" placeholder="поиск по названию…" style="margin-bottom:6px;">
+        <select id="s_font"></select>
+        <div class="switch-row" style="margin-top:8px;">
+          <label>Только с кириллицей</label>
+          <label class="switch"><input type="checkbox" id="fontCyrillicOnly" checked><span class="slider-toggle"></span></label>
+        </div>
+        <div class="field-hint">Для русского текста берите шрифт из первой группы — иначе движок подставит запасной.</div>
+
+        <label>Размер шрифта <span class="range-val" id="v_font_size">84</span></label>
+        <input type="range" id="s_font_size" min="30" max="160" value="84">
+
+        <label>Регистр</label>
+        <div class="toggle-group" id="textCaseGroup">
+          <button data-val="upper" class="active">ЗАГЛАВНЫЕ</button>
+          <button data-val="lower">строчные</button>
+          <button data-val="none">Как есть</button>
+        </div>
+
+        <label>Цвет текста</label>
+        <div class="color-row">
+          <input type="color" id="s_text_color" value="#ffffff">
+          <input type="text" id="s_text_color_hex" value="#FFFFFF">
+        </div>
+      </div>
+
+      <div class="section">
+        <label>Обводка <span class="range-val" id="v_stroke_width">0</span></label>
+        <input type="range" id="s_stroke_width" min="0" max="10" value="0">
+        <div class="color-row" style="margin-top:8px;">
+          <input type="color" id="s_stroke_color" value="#000000">
+          <input type="text" id="s_stroke_color_hex" value="#000000">
+        </div>
+
+        <div class="switch-row">
+          <label>Тень</label>
+          <label class="switch"><input type="checkbox" id="s_shadow_enabled" checked><span class="slider-toggle"></span></label>
+        </div>
+        <div class="row">
+          <div>
+            <label>Размытие <span class="range-val" id="v_shadow_blur">6</span></label>
+            <input type="range" id="s_shadow_blur" min="0" max="20" value="6">
+          </div>
+          <div>
+            <label>Прозрачность <span class="range-val" id="v_shadow_opacity">45</span></label>
+            <input type="range" id="s_shadow_opacity" min="0" max="100" value="45">
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <label>Тип выделения слова</label>
+        <div class="toggle-group" id="highlightStyleGroup">
+          <button data-val="box" class="active">Плашка</button>
+          <button data-val="color">Цвет</button>
+          <button data-val="none">Без</button>
+        </div>
+
+        <div id="boxParams">
+          <label>Цвет плашки</label>
+          <div class="color-row">
+            <input type="color" id="s_box_color" value="#3fa9e8">
+            <input type="text" id="s_box_color_hex" value="#3FA9E8">
+          </div>
+          <label>Цвет текста на плашке</label>
+          <div class="color-row">
+            <input type="color" id="s_active_text_color" value="#ffffff">
+            <input type="text" id="s_active_text_color_hex" value="#FFFFFF">
+          </div>
+          <label>Скругление <span class="range-val" id="v_box_radius">16</span></label>
+          <input type="range" id="s_box_radius" min="0" max="50" value="16">
+          <div class="row">
+            <div>
+              <label>Отступ X <span class="range-val" id="v_box_padding_x">20</span></label>
+              <input type="range" id="s_box_padding_x" min="0" max="40" value="20">
+            </div>
+            <div>
+              <label>Отступ Y <span class="range-val" id="v_box_padding_y">10</span></label>
+              <input type="range" id="s_box_padding_y" min="0" max="30" value="10">
+            </div>
+          </div>
+        </div>
+
+        <div id="colorParams" class="hidden">
+          <label>Цвет активного слова</label>
+          <div class="color-row">
+            <input type="color" id="s_word_highlight_color" value="#ffd400">
+            <input type="text" id="s_word_highlight_color_hex" value="#FFD400">
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <label>Позиция</label>
+        <div class="toggle-group" id="positionGroup">
+          <button data-val="top">Верх</button>
+          <button data-val="center">Центр</button>
+          <button data-val="bottom" class="active">Низ</button>
+        </div>
+        <label>Отступ от края <span class="range-val" id="v_position_margin">190</span></label>
+        <input type="range" id="s_position_margin" min="20" max="400" value="190">
+
+        <label>Строк максимум <span class="range-val" id="v_line_count">1</span></label>
+        <input type="range" id="s_line_count" min="1" max="4" value="1">
+
+        <label>Ширина блока <span class="range-val" id="v_max_width_ratio">86</span></label>
+        <input type="range" id="s_max_width_ratio" min="40" max="100" value="86">
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <button class="run-btn" id="runBtn" onclick="runPipeline()">Создать субтитры</button>
+    <div class="progress-wrap">
+      <div class="progress-label"><span id="progressStage">Готово к запуску</span><span id="progressPct"></span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="result-actions hidden" id="resultActions">
+      <button onclick="openOutput()">Открыть папку</button>
+      <button onclick="playResult()">Смотреть результат</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

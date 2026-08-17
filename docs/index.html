@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AISubs — локальные субтитры с подсветкой слов</title>
+<meta name="description" content="Приложение для Windows: распознаёт речь и вшивает субтитры с подсветкой произносимого слова. Работает офлайн, без подписок.">
+<style>
+:root{
+  --bg:#0c0e13; --panel:#151822; --panel-2:#1b1f2c; --border:#262b3a;
+  --text:#eef0f6; --dim:#9099b0; --accent:#4fb2ff; --accent-2:#9b5cff;
+  --grad:linear-gradient(135deg,#4fb2ff,#9b5cff); --good:#2be55b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.65;
+}
+a{color:var(--accent)}
+.wrap{max-width:960px; margin:0 auto; padding:0 24px}
+
+header{padding:80px 0 56px; text-align:center; border-bottom:1px solid var(--border)}
+.logo{
+  font-size:52px; font-weight:800; letter-spacing:-.5px; margin:0 0 12px;
+  background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.tagline{font-size:21px; color:var(--text); margin:0 0 10px}
+.sub{color:var(--dim); max-width:620px; margin:0 auto 30px}
+.badges{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:30px}
+.badge{
+  background:var(--panel-2); border:1px solid var(--border); color:var(--dim);
+  padding:6px 14px; border-radius:999px; font-size:13px;
+}
+.badge b{color:var(--good); font-weight:600}
+.cta{
+  display:inline-block; background:var(--grad); color:#08111f; font-weight:800;
+  padding:14px 30px; border-radius:12px; text-decoration:none; font-size:16px;
+  box-shadow:0 4px 24px rgba(79,178,255,.25);
+}
+.cta:hover{filter:brightness(1.08)}
+
+section{padding:56px 0; border-bottom:1px solid var(--border)}
+h2{font-size:26px; margin:0 0 8px}
+.lead{color:var(--dim); margin:0 0 28px}
+
+.shot{width:100%; border-radius:14px; border:1px solid var(--border); display:block}
+.caption{text-align:center; color:var(--dim); font-size:13px; margin-top:12px}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px}
+.card h3{margin:0 0 8px; font-size:16px}
+.card p{margin:0; color:var(--dim); font-size:14.5px}
+
+ol.steps{counter-reset:s; list-style:none; padding:0; margin:0}
+ol.steps li{
+  counter-increment:s; background:var(--panel); border:1px solid var(--border);
+  border-radius:12px; padding:16px 20px 16px 58px; margin-bottom:12px; position:relative;
+}
+ol.steps li::before{
+  content:counter(s); position:absolute; left:18px; top:16px;
+  width:26px; height:26px; border-radius:50%; background:var(--grad); color:#08111f;
+  font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center;
+}
+code, pre{font-family:ui-monospace,Consolas,monospace}
+pre{
+  background:#05070a; border:1px solid var(--border); border-radius:10px;
+  padding:14px 16px; overflow-x:auto; font-size:13.5px; color:#cfe6ff;
+}
+code{background:var(--panel-2); padding:2px 6px; border-radius:5px; font-size:13px}
+pre code{background:none; padding:0}
+
+table{width:100%; border-collapse:collapse; font-size:14.5px}
+td{padding:10px 0; border-bottom:1px solid var(--border); color:var(--dim)}
+td:first-child{color:var(--text); width:38%}
+tr:last-child td{border-bottom:none}
+
+footer{padding:40px 0 60px; text-align:center; color:var(--dim); font-size:14px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1 class="logo">AISubs</h1>
+    <p class="tagline">Субтитры с подсветкой произносимого слова</p>
+    <p class="sub">
+      Распознаёт речь в видео и вшивает субтитры, подсвечивая слово, которое
+      диктор произносит прямо сейчас — как в роликах VK, TikTok и Reels.
+    </p>
+    <div class="badges">
+      <span class="badge"><b>●</b> работает офлайн</span>
+      <span class="badge">без подписок и ключей</span>
+      <span class="badge">Windows 10 / 11</span>
+      <span class="badge">100+ языков</span>
+    </div>
+    <a class="cta" href="https://github.com/jimmorisedu-boop/aisubs-local">Открыть на GitHub</a>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <img class="shot" src="screenshot.png" alt="Окно AISubs: очередь видео, предпросмотр на кадре, настройки стиля">
+    <p class="caption">Предпросмотр показывает кадр из вашего видео в масштабе 1:1 — субтитры лягут ровно так же</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Что умеет</h2>
+    <p class="lead">Всё считается на вашем компьютере: видео и звук никуда не отправляются.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Пословная подсветка</h3>
+        <p>Цветная плашка под текущим словом, смена цвета текста (караоке) или простые субтитры без подсветки.</p>
+      </div>
+      <div class="card">
+        <h3>Точное распознавание</h3>
+        <p>Whisper large-v3 с пословными таймкодами. На видеокарте NVIDIA, с автоматическим переходом на процессор.</p>
+      </div>
+      <div class="card">
+        <h3>Пакетная обработка</h3>
+        <p>Перетащите хоть десяток роликов — обработаются очередью, с прогрессом по каждому.</p>
+      </div>
+      <div class="card">
+        <h3>Любые шрифты</h3>
+        <p>Все установленные в Windows плюс 14 из комплекта. Фильтр «только с кириллицей» проверяет реальные глифы, а не название.</p>
+      </div>
+      <div class="card">
+        <h3>Живой предпросмотр</h3>
+        <p>Кадр из вашего видео 1:1: размер шрифта, отступы и переносы видны такими, какими попадут в результат.</p>
+      </div>
+      <div class="card">
+        <h3>Пресеты стиля</h3>
+        <p>Пять готовых; свои сохраняются и удаляются в один клик. Хранятся простым JSON.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Типографика без ручной правки</h2>
+    <p class="lead">Мелочи, из-за которых обычно приходится поправлять субтитры вручную.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Предлоги не висят</h3>
+        <p>«в», «и», «на», «что» переносятся вместе со следующим словом и никогда не показываются отдельным кадром.</p>
+      </div>
+      <div class="card">
+        <h3>Плашка выровнена оптически</h3>
+        <p>Строится по заглавным буквам, поэтому слова с хвостами (Д, Ц, Щ, У) не съезжают, а высота не скачет по строке.</p>
+      </div>
+      <div class="card">
+        <h3>Текст не вылезает за кадр</h3>
+        <p>При крупном шрифте или длинном слове строка ужимается ровно настолько, чтобы уместиться.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Установка</h2>
+    <p class="lead">Python и ffmpeg ставить отдельно не нужно — установщик принесёт их в папку проекта.</p>
+    <ol class="steps">
+      <li>Скачайте репозиторий:
+        <pre><code>git clone https://github.com/jimmorisedu-boop/aisubs-local.git</code></pre>
+      </li>
+      <li>Запустите <code>setup.bat</code> — скачает окружение (~600 МБ).</li>
+      <li>Запустите <code>run.bat</code> — откроется окно приложения.</li>
+      <li>Перетащите видео и нажмите «Создать субтитры». При первой обработке
+          скачается модель распознавания (~3 ГБ) — дальше всё работает офлайн.</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Требования</h2>
+    <table>
+      <tr><td>Операционная система</td><td>Windows 10 или 11, 64 бита</td></tr>
+      <tr><td>Видеокарта</td><td>NVIDIA с CUDA — желательно. Без неё работает на процессоре, но медленнее</td></tr>
+      <tr><td>Место на диске</td><td>около 5 ГБ: окружение и модель распознавания</td></tr>
+      <tr><td>Интернет</td><td>только для установки и разовой загрузки модели</td></tr>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Код под лицензией MIT ·
+    <a href="https://github.com/jimmorisedu-boop/aisubs-local">github.com/jimmorisedu-boop/aisubs-local</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "Hormozi style",
+  "font": "fonts/Oswald-var.ttf#Bold",
+  "font_size": 110,
+  "text_case": "upper",
+
+  "text_color": "#FFFFFF",
+  "stroke_color": "#000000",
+  "stroke_width": 6,
+
+  "shadow_enabled": true,
+  "shadow_color": "#000000",
+  "shadow_opacity": 0.6,
+  "shadow_blur": 4,
+  "shadow_offset": [0, 4],
+
+  "highlight_style": "color",
+  "word_highlight_color": "#2BE55B",
+  "active_text_color": "#FFFFFF",
+  "box_color": "#000000",
+  "box_opacity": 0.0,
+  "box_radius": 12,
+  "box_padding_x": 16,
+  "box_padding_y": 8,
+
+  "line_count": 1,
+  "max_width_ratio": 0.9,
+  "line_spacing": 1.1,
+
+  "position": "center",
+  "position_margin": 140
+}

@@ -1,0 +1,11 @@
+# Speech recognition with word-level timestamps (GPU via CUDA, CPU fallback)
+faster-whisper==1.2.1
+
+# Video composition and encoding
+moviepy==2.2.1
+
+# Caption rasterising (text, pills, shadows)
+pillow==11.3.0
+
+# Native desktop window hosting the HTML interface (WebView2 on Windows)
+pywebview==6.2.1

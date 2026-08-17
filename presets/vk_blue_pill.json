@@ -1,0 +1,32 @@
+{
+  "name": "VK Pill (blue)",
+  "font": "fonts/Montserrat-var.ttf#ExtraBold",
+  "font_size": 84,
+  "text_case": "upper",
+
+  "text_color": "#FFFFFF",
+  "stroke_color": "#000000",
+  "stroke_width": 0,
+
+  "shadow_enabled": true,
+  "shadow_color": "#000000",
+  "shadow_opacity": 0.45,
+  "shadow_blur": 6,
+  "shadow_offset": [0, 3],
+
+  "highlight_style": "box",
+  "word_highlight_color": "#3FA9E8",
+  "active_text_color": "#FFFFFF",
+  "box_color": "#3FA9E8",
+  "box_opacity": 1.0,
+  "box_radius": 16,
+  "box_padding_x": 20,
+  "box_padding_y": 10,
+
+  "line_count": 1,
+  "max_width_ratio": 0.86,
+  "line_spacing": 1.18,
+
+  "position": "bottom",
+  "position_margin": 190
+}

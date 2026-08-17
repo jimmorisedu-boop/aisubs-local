@@ -1,0 +1,32 @@
+{
+  "name": "Karaoke (yellow)",
+  "font": "fonts/BebasNeue-Regular.ttf",
+  "font_size": 100,
+  "text_case": "upper",
+
+  "text_color": "#FFFFFF",
+  "stroke_color": "#000000",
+  "stroke_width": 4,
+
+  "shadow_enabled": true,
+  "shadow_color": "#000000",
+  "shadow_opacity": 0.5,
+  "shadow_blur": 5,
+  "shadow_offset": [0, 3],
+
+  "highlight_style": "color",
+  "word_highlight_color": "#FFD400",
+  "active_text_color": "#FFFFFF",
+  "box_color": "#000000",
+  "box_opacity": 0.0,
+  "box_radius": 12,
+  "box_padding_x": 16,
+  "box_padding_y": 8,
+
+  "line_count": 2,
+  "max_width_ratio": 0.82,
+  "line_spacing": 1.15,
+
+  "position": "center",
+  "position_margin": 160
+}

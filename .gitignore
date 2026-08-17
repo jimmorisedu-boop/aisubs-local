@@ -1,0 +1,33 @@
+# Portable runtime — installed by setup.bat, not stored in the repo
+python/
+ffmpeg/
+
+# Speech models, downloaded on first run (several GB)
+models/
+
+# Local work: transcripts, extracted frames, font index
+cache/
+
+# Your videos and results
+input/
+output/
+scratch/
+
+# Presets you save yourself stay local; only the shipped ones are tracked
+presets/*
+!presets/vk_blue_pill.json
+!presets/karaoke_yellow.json
+!presets/hormozi.json
+!presets/minimal_white.json
+!presets/bold_box_pink.json
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Editors / OS / tooling
+.claude/
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

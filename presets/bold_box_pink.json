@@ -1,0 +1,32 @@
+{
+  "name": "Bold pill (pink)",
+  "font": "fonts/FiraSans-Black.ttf",
+  "font_size": 78,
+  "text_case": "upper",
+
+  "text_color": "#FFFFFF",
+  "stroke_color": "#000000",
+  "stroke_width": 0,
+
+  "shadow_enabled": true,
+  "shadow_color": "#000000",
+  "shadow_opacity": 0.4,
+  "shadow_blur": 6,
+  "shadow_offset": [0, 3],
+
+  "highlight_style": "box",
+  "word_highlight_color": "#FF3D8A",
+  "active_text_color": "#1A0010",
+  "box_color": "#FF3D8A",
+  "box_opacity": 1.0,
+  "box_radius": 22,
+  "box_padding_x": 22,
+  "box_padding_y": 12,
+
+  "line_count": 1,
+  "max_width_ratio": 0.86,
+  "line_spacing": 1.18,
+
+  "position": "bottom",
+  "position_margin": 190
+}
