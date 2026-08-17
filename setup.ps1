@@ -8,7 +8,11 @@
 #>
 param(
     # large-v3 | distil-large-v3 | small | skip | ask
-    [string]$Model = "ask"
+    [string]$Model = "ask",
+
+    # Print the header and exit without touching anything - used by the tests
+    # and handy for checking that the launcher runs at all.
+    [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,6 +55,11 @@ Say "  • Python и ffmpeg          ~600 МБ"
 Say "  • библиотеки CUDA          ~550 МБ (только при видеокарте NVIDIA)"
 Say "  • модель распознавания     0.5–3 ГБ (можно выбрать или пропустить)"
 Say ""
+
+if ($DryRun) {
+    Say "Проверка запуска: установщик читается и выполняется." "Green"
+    exit 0
+}
 
 New-Item -ItemType Directory -Force -Path $Scratch | Out-Null
 
