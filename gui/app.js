@@ -662,6 +662,7 @@ async function runPipeline() {
 }
 
 const STAGE_LABELS = {
+  downloading_model: "Скачивание модели (разово)...",
   loading_model: "Загрузка модели распознавания...",
   transcribing: "Распознавание речи...",
   preparing: "Подготовка рендера...",
@@ -724,6 +725,7 @@ window.onQueueDone = function (outputs) {
     if (firstDone >= 0) showInPreview(firstDone);
   }
   renderQueue();
+  refreshModelHint();   // a model may have just been downloaded
 };
 
 function showToast(message) {
@@ -754,6 +756,37 @@ function playResult() {
   $("preview").play();
 }
 
+// Approximate download sizes, so the hint can warn before a long wait.
+const MODEL_SIZES = {
+  "large-v3": "~3 ГБ",
+  "distil-large-v3": "~1.5 ГБ",
+  "medium": "~1.5 ГБ",
+  "small": "~500 МБ",
+  "base": "~150 МБ",
+};
+let modelsCached = {};
+
+async function refreshModelHint() {
+  try {
+    modelsCached = (await api().models_status()) || {};
+  } catch (e) {
+    modelsCached = {};
+  }
+  updateModelHint();
+}
+
+function updateModelHint() {
+  const size = $("modelSize").value;
+  const hint = $("modelHint");
+  if (modelsCached[size]) {
+    hint.textContent = "Модель уже скачана — начнём сразу.";
+    hint.style.color = "";
+  } else {
+    hint.textContent = `Модель ещё не скачана: при запуске загрузится ${MODEL_SIZES[size] || ""} (разово).`;
+    hint.style.color = "var(--accent)";
+  }
+}
+
 async function refreshGpuBadge() {
   try {
     const info = await api().get_gpu_info();
@@ -773,6 +806,8 @@ function init() {
   loadPresets();
   loadFonts();
   refreshGpuBadge();
+  refreshModelHint();
+  $("modelSize").addEventListener("change", updateModelHint);
 }
 
 if (window.pywebview) {

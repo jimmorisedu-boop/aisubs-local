@@ -142,6 +142,17 @@ class Api:
             traceback.print_exc()
             return {"ok": False, "error": str(e)}
 
+    def models_status(self):
+        """Which models are already on disk, so the UI can say what needs a download."""
+        try:
+            import transcribe as t
+            models_dir = os.path.join(BASE_DIR, "models", "whisper")
+            return {size: t.is_model_cached(size, models_dir) for size in
+                    ("large-v3", "distil-large-v3", "medium", "small", "base", "tiny")}
+        except Exception:
+            traceback.print_exc()
+            return {}
+
     def list_fonts(self):
         """Bundled faces plus everything installed in Windows."""
         try:
