@@ -1,0 +1,35 @@
+:root {
+  --color-paper: oklch(18% 0.02 273);
+  --color-panel: oklch(22% 0.025 273);
+  --color-ink: oklch(94% 0.01 273);
+  --color-muted: oklch(72% 0.02 273);
+  --color-rule: oklch(34% 0.03 273);
+  --color-accent: oklch(72% 0.16 272);
+  --color-accent-strong: oklch(80% 0.13 272);
+  --color-focus: oklch(84% 0.15 100);
+
+  --font-display: "Segoe UI", system-ui, sans-serif;
+  --font-body: "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  --text-sm: 0.875rem;
+  --text-body: 1rem;
+  --text-lede: clamp(1.0625rem, 1.7vw, 1.25rem);
+  --text-h2: clamp(1.25rem, 2.5vw, 1.75rem);
+  --text-title: clamp(2rem, 5vw, 3.5rem);
+
+  --rule-thin: 1px;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --dur-fast: 120ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}

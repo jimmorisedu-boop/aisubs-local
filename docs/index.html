@@ -1,74 +1,105 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="AISubs — офлайн-приложение Windows для пакетных субтитров: Auto/Manual, проверка слов и таймингов, Whisper и пословная подсветка.">
-<meta name="theme-color" content="oklch(15% .014 270)">
-<title>AISubs — пакетные субтитры без облака</title>
-<style>
-/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
-/* Hallmark · genre: atmospheric · macrostructure: Workbench · theme: AISubs dark · enrichment: real product captures · nav: N9 · footer: Ft5 · contrast: pass (40–41) · slop: pass (42–49) · mobile: pass (34,49–57) */
-:root{
-  --color-paper:oklch(15% .014 270);--color-paper-2:oklch(19% .018 270);--color-paper-3:oklch(23% .022 270);
-  --color-ink:oklch(96% .008 270);--color-ink-2:oklch(76% .018 270);--color-ink-3:oklch(62% .02 270);
-  --color-rule:oklch(31% .025 270);--color-accent:oklch(75% .15 245);--color-accent-2:oklch(67% .19 300);
-  --color-accent-ink:oklch(15% .03 270);--color-focus:oklch(84% .14 230);
-  --font-display:"Arial Narrow","Segoe UI",sans-serif;--font-body:"Segoe UI",Arial,sans-serif;--font-mono:"Cascadia Mono",Consolas,monospace;
-  --space-xs:.25rem;--space-sm:.5rem;--space-md:1rem;--space-lg:1.5rem;--space-xl:2rem;--space-2xl:3rem;--space-3xl:5rem;--space-4xl:7rem;
-  --text-xs:.78rem;--text-sm:.9rem;--text-md:1rem;--text-lg:1.2rem;--text-xl:clamp(1.8rem,3vw,3rem);--text-display:clamp(3rem,5vw,5rem);
-  --radius-sm:.55rem;--radius-md:1rem;--radius-lg:1.4rem;--rule-hair:1px;--dur-fast:120ms;--ease-out:cubic-bezier(.2,.8,.2,1);
-  --page-gutter:clamp(1rem,4vw,4rem);--page-max:88rem;
-}
-*{box-sizing:border-box}html,body{margin:0;overflow-x:clip;background:var(--color-paper);color:var(--color-ink)}html{scroll-behavior:smooth}
-body{font-family:var(--font-body);font-size:var(--text-md);line-height:1.6}
-a{color:inherit;text-decoration-thickness:var(--rule-hair);text-underline-offset:.25em}a:hover{color:var(--color-accent)}a:active{transform:translateY(1px)}a:focus-visible{outline:3px solid var(--color-focus);outline-offset:4px;border-radius:var(--radius-sm)}
-img{display:block;max-width:100%;height:auto}h1,h2,h3,p,figure{margin-block-start:0}h1,h2,h3{font-family:var(--font-display);font-style:normal;line-height:1;letter-spacing:-.035em;overflow-wrap:anywhere;min-width:0}
-h1{font-size:var(--text-display);max-width:13ch;margin-block-end:var(--space-lg);overflow-wrap:anywhere;min-width:0}h2{font-size:var(--text-xl);margin-block-end:var(--space-lg)}h3{font-size:clamp(1.45rem,2vw,2rem);margin-block-end:var(--space-md)}p{max-width:64ch}
-.shell{width:min(100%,var(--page-max));margin-inline:auto;padding-inline:var(--page-gutter)}
-.nav-edge{display:flex;align-items:center;justify-content:space-between;gap:var(--space-lg);padding-block:var(--space-lg)}
-.wordmark{font-family:var(--font-display);font-size:1.3rem;font-weight:800;letter-spacing:-.02em;text-decoration:none}.wordmark span{color:var(--color-ink-3);font-family:var(--font-body);font-size:var(--text-xs);font-weight:500;letter-spacing:0;margin-inline-start:var(--space-sm)}
-.nav-cta,.primary-cta,.secondary-cta{display:inline-flex;align-items:center;justify-content:center;min-height:2.75rem;padding:var(--space-sm) var(--space-md);border-radius:var(--radius-sm);font-weight:750;line-height:1;text-decoration:none;white-space:nowrap;transition:transform var(--dur-fast) var(--ease-out),opacity var(--dur-fast) var(--ease-out)}
-.nav-cta,.secondary-cta{border:var(--rule-hair) solid var(--color-rule);background:var(--color-paper-2)}.primary-cta{background:var(--color-accent);color:var(--color-accent-ink)}
-.nav-cta:hover,.secondary-cta:hover{border-color:var(--color-accent);background:var(--color-paper-3)}.primary-cta:hover{color:var(--color-accent-ink);opacity:.92;transform:translateY(-1px)}
-.nav-cta[aria-disabled="true"],.primary-cta[aria-disabled="true"],.secondary-cta[aria-disabled="true"]{opacity:.55;cursor:not-allowed;pointer-events:none}
-.hero{padding-block:var(--space-sm) var(--space-4xl)}.hero-intro{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(var(--space-xl),5vw,var(--space-3xl));align-items:center;padding-block:var(--space-2xl)}
-.eyebrow{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.12em;color:var(--color-accent);margin-block-end:var(--space-lg)}.hero-lede{color:var(--color-ink-2);font-size:var(--text-lg);margin-block-end:var(--space-xl)}.hero-actions{display:flex;gap:var(--space-sm);flex-wrap:wrap}
-.product-shot{margin:0;border:var(--rule-hair) solid var(--color-rule);border-radius:var(--radius-lg);overflow:hidden;background:var(--color-paper-2)}.product-shot img{width:100%}.product-shot figcaption{display:flex;justify-content:space-between;gap:var(--space-md);padding:var(--space-md) var(--space-lg);color:var(--color-ink-3);font-size:var(--text-sm)}.product-shot figcaption strong{color:var(--color-ink);font-weight:650}
-section{padding-block:var(--space-4xl)}.section-head{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--space-xl);align-items:start;margin-block-end:var(--space-2xl)}.section-head p{color:var(--color-ink-2);margin:0}
-.mode-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-block:var(--rule-hair) solid var(--color-rule)}.mode{padding:var(--space-2xl) 0}.mode:first-child{padding-inline-end:var(--space-2xl)}.mode:last-child{padding-inline-start:var(--space-2xl);border-inline-start:var(--rule-hair) solid var(--color-rule)}.mode-mark{display:inline-block;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-accent);margin-block-end:var(--space-xl)}.mode p,.mode ul{color:var(--color-ink-2)}.mode ul{margin:var(--space-lg) 0 0;padding-inline-start:1.1rem}.mode li+li{margin-block-start:var(--space-sm)}.auto-proof{margin-block-start:var(--space-2xl)}
-.workflow-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0;padding:0;list-style:none;border-block:var(--rule-hair) solid var(--color-rule)}.workflow-list li{padding:var(--space-xl);min-width:0}.workflow-list li+li{border-inline-start:var(--rule-hair) solid var(--color-rule)}.step-number{display:block;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-accent);margin-block-end:var(--space-2xl)}.workflow-list strong{display:block;font-family:var(--font-display);font-size:1.25rem;line-height:1.15;margin-block-end:var(--space-sm)}.workflow-list span:last-child{color:var(--color-ink-2);font-size:var(--text-sm)}
-.trust-grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:var(--space-2xl);align-items:start}.trust-grid h2{position:sticky;top:var(--space-xl)}.trust-list{margin:0}.trust-row{display:grid;grid-template-columns:minmax(8rem,3fr) minmax(0,5fr);gap:var(--space-xl);padding-block:var(--space-xl);border-top:var(--rule-hair) solid var(--color-rule)}.trust-row:last-child{border-bottom:var(--rule-hair) solid var(--color-rule)}.trust-row dt{font-weight:750}.trust-row dd{margin:0;color:var(--color-ink-2)}
-.quick-start{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--space-2xl);align-items:end;background:var(--color-paper-2);border-radius:var(--radius-lg);padding:clamp(var(--space-xl),5vw,var(--space-3xl))}.quick-start p{color:var(--color-ink-2)}.command{font-family:var(--font-mono);font-size:clamp(1.1rem,2.5vw,2rem);line-height:1.4;color:var(--color-ink);margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.command .arrow{color:var(--color-accent)}
-.foot-stmt{padding-block:var(--space-4xl) var(--space-xl)}.foot-stmt__line{font-family:var(--font-display);font-size:clamp(2rem,6vw,5rem);line-height:.98;letter-spacing:-.035em;max-width:18ch;margin-block-end:var(--space-3xl);overflow-wrap:anywhere}.foot-stmt__meta{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-xl);padding-block-start:var(--space-lg);border-top:var(--rule-hair) solid var(--color-rule);color:var(--color-ink-3);font-size:var(--text-sm)}.footer-links{display:flex;flex-wrap:wrap;gap:var(--space-md) var(--space-lg)}.footer-links a{white-space:nowrap}.channel{color:var(--color-ink-2)}
-@media (max-width:760px){:root{--page-gutter:1rem;--space-4xl:4.5rem}.wordmark span{display:none}.hero-intro,.section-head,.trust-grid,.quick-start{grid-template-columns:minmax(0,1fr)}.hero-intro{padding-block:var(--space-2xl);gap:var(--space-2xl)}.product-shot figcaption{display:block}.product-shot figcaption span{display:block;margin-block-start:var(--space-xs)}.mode-pair{grid-template-columns:minmax(0,1fr)}.mode:first-child{padding-inline-end:0}.mode:last-child{padding-inline-start:0;border-inline-start:0;border-top:var(--rule-hair) solid var(--color-rule)}.workflow-list{grid-template-columns:minmax(0,1fr)}.workflow-list li+li{border-inline-start:0;border-top:var(--rule-hair) solid var(--color-rule)}.step-number{margin-block-end:var(--space-md)}.trust-grid h2{position:static}.trust-row{grid-template-columns:minmax(0,1fr);gap:var(--space-sm)}.foot-stmt__meta{display:grid}}
-@media (max-width:380px){.nav-edge{align-items:flex-start}.nav-cta{font-size:var(--text-xs);padding-inline:.8rem}.hero-actions{display:grid}.hero-actions a{width:100%}}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition-duration:1ms!important;animation-duration:1ms!important;animation-iteration-count:1!important}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="AISubs — локальное Windows-приложение для пакетного создания субтитров в режимах Auto и Manual.">
+  <meta name="theme-color" content="oklch(18% 0.02 273)">
+  <title>AISubs — локальные пакетные субтитры</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="landing.css">
 </head>
 <body>
-<header class="shell" id="hero">
-  <nav class="nav-edge" aria-label="Основная навигация"><a class="wordmark" href="#hero">AISubs <span>локальные субтитры</span></a><a class="nav-cta" href="https://github.com/jimmorisedu-boop/aisubs-local">Открыть на GitHub ↗</a></nav>
-  <div class="hero">
-    <div class="hero-intro">
-      <div><p class="eyebrow">OFFLINE · WINDOWS · BATCH</p><h1>Проверьте слова. Запустите весь пакет.</h1><p class="hero-lede">AISubs распознаёт речь, даёт исправить текст и тайминги, а затем рендерит одобренные ролики одной очередью. Видео и черновики остаются на вашем компьютере.</p><div class="hero-actions"><a class="primary-cta" href="https://github.com/jimmorisedu-boop/aisubs-local">Открыть на GitHub</a><a class="secondary-cta" href="https://github.com/jimmorisedu-boop/aisubs-local#установка">Установка</a></div></div>
-      <figure class="product-shot"><img src="screenshot-manual.png" alt="Manual Mode AISubs: очередь из четырёх видео, редактор слов и таймингов, предупреждение и пакетный рендер одобренных файлов" width="1440" height="900"><figcaption><strong>Manual Mode — проверка готовых транскриптов</strong><span>Правки сохраняются автоматически</span></figcaption></figure>
+  <header class="page-shell overview" id="overview">
+    <nav class="site-nav" aria-label="Основная навигация">
+      <a class="wordmark" href="#overview" aria-label="AISubs — начало страницы">AISubs</a>
+      <ul class="nav-links">
+        <li><a href="https://github.com/jimmorisedu-boop/aisubs-local">GitHub</a></li>
+        <li><a href="https://github.com/jimmorisedu-boop/aisubs-local#readme">README</a></li>
+      </ul>
+    </nav>
+
+    <div class="intro">
+      <h1>AISubs</h1>
+      <p class="lede">Локальное Windows-приложение для пакетного создания субтитров с режимами Auto и Manual.</p>
+      <ul class="fact-line" aria-label="Краткие характеристики">
+        <li>Windows 10/11</li>
+        <li>локальная обработка</li>
+        <li>CPU / CUDA</li>
+        <li>faster-whisper + ffmpeg</li>
+      </ul>
+      <div class="primary-links" aria-label="Ссылки проекта">
+        <a href="https://github.com/jimmorisedu-boop/aisubs-local">GitHub ↗</a>
+        <a href="https://github.com/jimmorisedu-boop/aisubs-local#установка">Установка ↗</a>
+        <a href="https://t.me/daipotestit">@daipotestit ↗</a>
+      </div>
     </div>
-  </div>
-</header>
-<main>
-  <section class="shell" id="modes">
-    <div class="section-head"><h2>Два режима. Одна очередь.</h2><p>Выберите контроль, который нужен именно этому пакету. Настройки стиля и пакетная обработка доступны в обоих режимах.</p></div>
-    <div class="mode-pair">
-      <article class="mode"><span class="mode-mark">AUTO</span><h3>От файлов сразу к результату</h3><p>Добавьте пачку и запустите. AISubs последовательно распознаёт речь и рендерит каждый ролик без остановок на проверку.</p><ul><li>минимум действий для чистых исходников;</li><li>прогресс и ошибка видны по каждому файлу;</li><li>остановка срабатывает после текущего файла.</li></ul></article>
-      <article class="mode"><span class="mode-mark">MANUAL</span><h3>Проверка до дорогого рендера</h3><p>Редактируйте слова и тайминги по мере готовности, массово одобряйте чистые файлы и отправляйте подтверждённую часть в один рендер.</p><ul><li>предупреждения о неуверенно распознанных словах;</li><li>автосохранение правок и восстановление пакета;</li><li>повтор ошибок без перезапуска всей очереди.</li></ul></article>
-    </div>
-    <figure class="product-shot auto-proof"><img src="screenshot.png" alt="Auto Mode AISubs: очередь из четырёх видео, живой предпросмотр субтитров и настройки стиля" width="1440" height="900" loading="lazy"><figcaption><strong>Auto Mode — весь пакет без остановок</strong><span>Стиль настраивается до запуска</span></figcaption></figure>
-  </section>
-  <section class="shell" id="workflow"><div class="section-head"><h2>Рабочий процесс студии</h2><p>Транскрипция и проверка не блокируют друг друга: можно разбирать готовые ролики, пока очередь продолжает работу.</p></div><ol class="workflow-list"><li><span class="step-number">01</span><strong>Добавьте пакет</strong><span>Перетащите все исходники в одну очередь.</span></li><li><span class="step-number">02</span><strong>Проверяйте готовое</strong><span>Открывайте транскрипты сразу после распознавания.</span></li><li><span class="step-number">03</span><strong>Одобрите чистое</strong><span>Подтвердите один файл или всё без предупреждений.</span></li><li><span class="step-number">04</span><strong>Рендерите вместе</strong><span>Запустите одобренные ролики одной пакетной командой.</span></li></ol></section>
-  <section class="shell" id="trust"><div class="trust-grid"><h2>Предсказуемо для рабочего проекта</h2><dl class="trust-list"><div class="trust-row"><dt>Локально</dt><dd>Видео, звук и транскрипты не отправляются в облачный сервис. Сеть нужна для установки и первой загрузки модели.</dd></div><div class="trust-row"><dt>Правки без потери ритма</dt><dd>Замена текста сохраняет пословные тайминги; при необходимости начало и конец слова редактируются вручную.</dd></div><div class="trust-row"><dt>Без перезаписи</dt><dd>Если имя результата уже занято, AISubs планирует безопасное новое имя вместо молчаливой замены файла.</dd></div><div class="trust-row"><dt>После перезапуска</dt><dd>Черновики, одобренные версии и состояние последнего Manual-пакета восстанавливаются с диска.</dd></div></dl></div></section>
-  <section class="shell" id="quick-start"><div class="quick-start"><div><h2>Запуск без отдельной сборки</h2><p>Windows-установщик разворачивает локальный Python, ffmpeg и зависимости. Модель можно выбрать при установке или скачать при первом запуске обработки.</p><a class="secondary-cta" href="https://github.com/jimmorisedu-boop/aisubs-local#установка">Открыть инструкцию</a></div><pre class="command" aria-label="Команды запуска"><code>setup.bat <span class="arrow">→</span> run.bat</code></pre></div></section>
-</main>
-<footer class="shell foot-stmt" id="site-footer"><p class="foot-stmt__line">Меньше ожидания между монтажом и готовым пакетом.</p><div class="foot-stmt__meta"><div class="footer-links"><a href="https://github.com/jimmorisedu-boop/aisubs-local">GitHub</a><a href="https://github.com/jimmorisedu-boop/aisubs-local#readme">README</a><a href="https://github.com/jimmorisedu-boop/aisubs-local/blob/main/LICENSE">MIT</a><span>Windows 10 / 11</span></div><a class="channel" href="https://t.me/daipotestit">Проект и обновления: @daipotestit ↗</a></div></footer>
+
+    <figure class="product-capture">
+      <img src="screenshot.png" width="1440" height="900" fetchpriority="high" alt="Auto Mode AISubs: пакетная очередь видео, предпросмотр и настройки субтитров">
+      <figcaption>Auto Mode: очередь файлов и параметры рендера.</figcaption>
+    </figure>
+  </header>
+
+  <main class="page-shell technical-document">
+    <section id="modes" aria-labelledby="modes-title">
+      <h2 id="modes-title">Режимы обработки</h2>
+      <p>Auto выполняет весь пакет без промежуточной проверки. Manual добавляет проверку текста и таймингов перед рендером; этот этап не обязателен для Auto.</p>
+      <div class="table-wrap">
+        <table class="mode-table">
+          <thead>
+            <tr>
+              <th scope="col">Режим</th>
+              <th scope="col">Назначение</th>
+              <th scope="col">Процесс</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row" data-label="Режим">Auto</th>
+              <td data-label="Назначение">Обработка пакета без промежуточной проверки.</td>
+              <td data-label="Процесс">Добавить файлы → запустить → получить результаты.</td>
+            </tr>
+            <tr>
+              <th scope="row" data-label="Режим">Manual</th>
+              <td data-label="Назначение">Проверка текста и таймингов до пакетного рендера.</td>
+              <td data-label="Процесс">Распознать → проверить и одобрить → отрендерить одобренное.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="specs" aria-labelledby="specs-title">
+      <h2 id="specs-title">Технические характеристики</h2>
+      <dl class="spec-list">
+        <div><dt>ОС</dt><dd>Windows 10/11, 64-bit.</dd></div>
+        <div><dt>Распознавание</dt><dd>faster-whisper с пословными таймкодами.</dd></div>
+        <div><dt>Вычисления</dt><dd>NVIDIA CUDA при наличии; автоматический переход на CPU.</dd></div>
+        <div><dt>Видео</dt><dd>Локальная обработка и рендер через ffmpeg.</dd></div>
+        <div><dt>Данные</dt><dd>Исходники, транскрипты, кэш и результаты остаются на компьютере.</dd></div>
+        <div><dt>Manual</dt><dd>Черновики и ревизии сохраняются на диске и восстанавливаются после перезапуска.</dd></div>
+        <div><dt>Результаты</dt><dd>Если имя занято, создаётся новый файл без молчаливой перезаписи существующего.</dd></div>
+      </dl>
+    </section>
+
+    <section id="install" aria-labelledby="install-title">
+      <h2 id="install-title">Установка и запуск</h2>
+      <p><code>setup.bat</code> разворачивает портативный Python, ffmpeg и зависимости. Сеть требуется для установки и первой загрузки модели.</p>
+      <pre class="commands" aria-label="Команды установки и запуска"><code>setup.bat
+run.bat</code></pre>
+      <p><a class="text-link" href="https://github.com/jimmorisedu-boop/aisubs-local#установка">Полная инструкция в README ↗</a></p>
+    </section>
+  </main>
+
+  <footer class="page-shell site-footer" id="site-footer">
+    <span>AISubs · MIT</span>
+    <nav aria-label="Ссылки в подвале">
+      <a href="https://github.com/jimmorisedu-boop/aisubs-local">GitHub</a>
+      <a href="https://github.com/jimmorisedu-boop/aisubs-local#readme">README</a>
+      <a href="https://github.com/jimmorisedu-boop/aisubs-local/blob/main/LICENSE">MIT</a>
+      <a href="https://t.me/daipotestit">@daipotestit</a>
+    </nav>
+  </footer>
 </body>
 </html>
