@@ -11,6 +11,41 @@ import json
 import argparse
 import time
 
+
+def enable_bundled_cuda_libs():
+    """Makes pip-installed CUDA libraries findable.
+
+    ctranslate2 loads cuBLAS by name at runtime. The pip packages put it in
+    site-packages/nvidia/<lib>/bin, which is not on the DLL search path, so
+    without this the GPU path fails and transcription quietly drops to CPU on
+    any machine that lacks a system-wide CUDA Toolkit.
+    """
+    if os.name != "nt" or not hasattr(os, "add_dll_directory"):
+        return []
+
+    roots = []
+    for base in {os.path.dirname(os.path.dirname(os.__file__)),
+                 os.path.join(os.path.dirname(sys.executable), "Lib")}:
+        nvidia = os.path.join(base, "site-packages", "nvidia")
+        if os.path.isdir(nvidia):
+            roots.append(nvidia)
+
+    added = []
+    for nvidia in roots:
+        for lib in os.listdir(nvidia):
+            bin_dir = os.path.join(nvidia, lib, "bin")
+            if os.path.isdir(bin_dir):
+                try:
+                    os.add_dll_directory(bin_dir)
+                    added.append(bin_dir)
+                except OSError:
+                    pass
+    return added
+
+
+enable_bundled_cuda_libs()
+
+
 def _load_model(model_size, device, compute_type, download_root):
     from faster_whisper import WhisperModel
     return WhisperModel(model_size, device=device, compute_type=compute_type, download_root=download_root)

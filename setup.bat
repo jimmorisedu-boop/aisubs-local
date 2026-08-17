@@ -6,9 +6,10 @@ echo ============================================
 echo   AISubs - первичная установка
 echo ============================================
 echo.
-echo Будет скачано около 600 МБ (Python и ffmpeg).
-echo Модель распознавания речи скачается позже,
-echo при первом запуске.
+echo Будет скачано:
+echo   - Python и ffmpeg           ~600 МБ
+echo   - библиотеки CUDA           ~550 МБ (только если есть видеокарта NVIDIA)
+echo   - модель распознавания      ~3 ГБ  (можно отказаться и скачать позже)
 echo.
 
 set "PYTHONNOUSERSITE=1"
@@ -39,16 +40,16 @@ if errorlevel 1 goto :fail
 del /q "scratch\get-pip.py" 2>nul
 
 :deps
-echo [3/4] Устанавливаю библиотеки Python...
+echo [3/6] Устанавливаю библиотеки Python...
 "%PY%" -m pip install --no-warn-script-location -r requirements.txt
 if errorlevel 1 goto :fail
 
 if exist "%~dp0ffmpeg\ffmpeg.exe" (
-    echo [4/4] ffmpeg уже установлен - пропускаю.
-    goto :done
+    echo [4/6] ffmpeg уже установлен - пропускаю.
+    goto :cuda
 )
 
-echo [4/4] Скачиваю ffmpeg...
+echo [4/6] Скачиваю ffmpeg...
 powershell -NoProfile -Command ^
   "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue';" ^
   "New-Item -ItemType Directory -Force -Path 'scratch' | Out-Null;" ^
@@ -58,6 +59,45 @@ powershell -NoProfile -Command ^
   "Get-ChildItem 'scratch\ffmpeg' -Recurse -Include ffmpeg.exe,ffprobe.exe | ForEach-Object { Copy-Item $_.FullName 'ffmpeg\' -Force };" ^
   "Remove-Item 'scratch\ffmpeg' -Recurse -Force; Remove-Item 'scratch\ffmpeg.zip' -Force"
 if errorlevel 1 goto :fail
+
+:cuda
+rem cuBLAS is loaded by name at runtime and is NOT part of the NVIDIA driver -
+rem without it the GPU path fails and everything silently runs on the CPU.
+where nvidia-smi >nul 2>&1
+if errorlevel 1 (
+    echo [5/6] Видеокарта NVIDIA не найдена - пропускаю библиотеки CUDA.
+    echo       Распознавание будет работать на процессоре.
+    goto :model
+)
+
+"%PY%" -c "import nvidia.cublas, os; print(os.path.dirname(nvidia.cublas.__file__))" >nul 2>&1
+if not errorlevel 1 (
+    echo [5/6] Библиотеки CUDA уже установлены - пропускаю.
+    goto :model
+)
+
+echo [5/6] Видеокарта NVIDIA найдена. Скачиваю библиотеки CUDA (~550 МБ)...
+"%PY%" -m pip install --no-warn-script-location nvidia-cublas-cu12
+if errorlevel 1 (
+    echo       Не получилось. Распознавание будет работать на процессоре,
+    echo       установку можно повторить позже, запустив setup.bat снова.
+)
+
+:model
+echo.
+echo [6/6] Модель распознавания речи.
+echo.
+set "GETMODEL="
+set /p GETMODEL="Скачать сейчас large-v3 (~3 ГБ)? [Y/n]: "
+if /i "%GETMODEL%"=="n" (
+    echo Пропускаю. Модель скачается сама при первой обработке видео.
+    goto :done
+)
+"%PY%" download_model.py large-v3
+if errorlevel 1 (
+    echo Модель не скачалась - ничего страшного, она загрузится
+    echo автоматически при первой обработке видео.
+)
 
 :done
 echo.
