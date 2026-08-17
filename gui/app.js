@@ -766,12 +766,24 @@ const MODEL_SIZES = {
 };
 let modelsCached = {};
 
-async function refreshModelHint() {
+// Best first: the dropdown falls back to the best model already on disk.
+const MODEL_PREFERENCE = ["large-v3", "distil-large-v3", "medium", "small", "base", "tiny"];
+
+async function refreshModelHint(selectDownloaded) {
   try {
     modelsCached = (await api().models_status()) || {};
   } catch (e) {
     modelsCached = {};
   }
+
+  // On startup, don't leave a 3 GB download queued up behind the default when
+  // the user already has a lighter model installed.
+  if (selectDownloaded && !modelsCached[$("modelSize").value]) {
+    const ready = MODEL_PREFERENCE.find((m) => modelsCached[m] &&
+      $("modelSize").querySelector(`option[value="${m}"]`));
+    if (ready) $("modelSize").value = ready;
+  }
+
   updateModelHint();
 }
 
@@ -806,7 +818,7 @@ function init() {
   loadPresets();
   loadFonts();
   refreshGpuBadge();
-  refreshModelHint();
+  refreshModelHint(true);
   $("modelSize").addEventListener("change", updateModelHint);
 }
 

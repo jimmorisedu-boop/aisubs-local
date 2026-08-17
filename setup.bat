@@ -87,13 +87,24 @@ if errorlevel 1 (
 echo.
 echo [6/6] Модель распознавания речи.
 echo.
-set "GETMODEL="
-set /p GETMODEL="Скачать сейчас large-v3 (~3 ГБ)? [Y/n]: "
-if /i "%GETMODEL%"=="n" (
-    echo Пропускаю. Модель скачается сама при первой обработке видео.
+echo   1. large-v3          ~3 ГБ    максимальное качество
+echo   2. distil-large-v3   ~1.5 ГБ  быстрее, почти так же точно
+echo   3. small             ~500 МБ  быстро, качество ниже
+echo   4. пропустить - скачается сама при первой обработке видео
+echo.
+set "MODELCHOICE="
+set /p MODELCHOICE="Что скачать? [1]: "
+if "%MODELCHOICE%"=="" set "MODELCHOICE=1"
+
+if "%MODELCHOICE%"=="4" (
+    echo Пропускаю. Модель скачается при первой обработке видео.
     goto :done
 )
-"%PY%" download_model.py large-v3
+set "MODELNAME=large-v3"
+if "%MODELCHOICE%"=="2" set "MODELNAME=distil-large-v3"
+if "%MODELCHOICE%"=="3" set "MODELNAME=small"
+
+"%PY%" download_model.py %MODELNAME%
 if errorlevel 1 (
     echo Модель не скачалась - ничего страшного, она загрузится
     echo автоматически при первой обработке видео.
