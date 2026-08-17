@@ -1,5 +1,6 @@
 import struct
 import unittest
+import re
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -78,6 +79,25 @@ class GitHubPagesTests(unittest.TestCase):
         for src, _ in self.parser.images:
             if src and not src.startswith(("http://", "https://", "/")):
                 self.assertTrue((self.path.parent / src).is_file(), src)
+
+
+class ReadmeTests(unittest.TestCase):
+    def setUp(self):
+        self.path = ROOT / "README.md"
+        self.markdown = self.path.read_text(encoding="utf-8")
+
+    def test_readme_links_to_the_product_page_channel_and_manual_proof(self):
+        targets = re.findall(r"\[[^]]*\]\(([^)]+)\)", self.markdown)
+
+        self.assertIn("https://jimmorisedu-boop.github.io/aisubs-local/", targets)
+        self.assertIn("https://t.me/daipotestit", targets)
+        self.assertIn("docs/screenshot-manual.png", targets)
+
+    def test_readme_relative_images_resolve(self):
+        for target in re.findall(r"!\[[^]]*\]\(([^)]+)\)", self.markdown):
+            if target.startswith(("http://", "https://", "/")):
+                continue
+            self.assertTrue((self.path.parent / target).is_file(), target)
 
 
 if __name__ == "__main__":
