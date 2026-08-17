@@ -21,9 +21,13 @@ from webview import FileDialog
 import pipeline as pipeline_mod
 import mediaserver
 import fontlist
+from lib.manual_jobs import ManualJobService
+from lib.output_planner import plan_output_paths
+from lib.transcript_revisions import RevisionConflict, TranscriptError, ValidationError
 
 PRESETS_DIR = os.path.join(BASE_DIR, "presets")
 OUTPUT_DIR = os.path.join(BASE_DIR, "output")
+REVISIONS_DIR = os.path.join(BASE_DIR, "cache", "revisions")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 VIDEO_EXTS = {".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v", ".wmv", ".flv", ".mpg", ".mpeg", ".ts"}
@@ -43,6 +47,12 @@ class Api:
         self._js_queue = queue.Queue()
         self._js_thread = threading.Thread(target=self._js_pump, daemon=True)
         self._js_thread.start()
+        self._manual = ManualJobService(
+            REVISIONS_DIR,
+            pipeline_mod.transcribe_phase,
+            pipeline_mod.render_phase,
+            event_cb=self._manual_event,
+        )
 
     # ---------- presets ----------
 
@@ -121,6 +131,9 @@ class Api:
     def _push_files(self, paths):
         videos = [p for p in paths if os.path.splitext(p)[1].lower() in VIDEO_EXTS]
         self._js("onVideosPicked", videos)
+
+    def _manual_event(self, snapshot, _item):
+        self._js("onManualJobUpdated", snapshot)
 
     def delete_preset(self, filename):
         """Removes a preset by its file stem. Refuses anything that would
@@ -227,6 +240,7 @@ class Api:
         language = args.get("language") or None
 
         self._cancelled = False
+        output_paths = plan_output_paths(videos, OUTPUT_DIR)
 
         js = self._js
 
@@ -236,8 +250,7 @@ class Api:
                 if self._cancelled:
                     break
 
-                base = os.path.splitext(os.path.basename(video))[0]
-                output_path = os.path.join(OUTPUT_DIR, f"{base}_captioned.mp4")
+                output_path = output_paths[index]
 
                 js("onFileStarted", index)
                 try:
@@ -260,6 +273,159 @@ class Api:
 
         threading.Thread(target=worker, daemon=True).start()
         return {"started": True, "count": len(videos)}
+
+    def start_manual_job(self, args):
+        videos = args.get("videos") or []
+        if not videos:
+            return {"ok": False, "error": "Добавьте хотя бы одно видео"}
+        self._cancelled = False
+        params = {
+            "model_size": args.get("model") or "large-v3",
+            "device": args.get("device") or "auto",
+            "language": args.get("language") or None,
+        }
+        snapshot = self._manual.create_job(videos, params)
+
+        def worker():
+            result = self._manual.run_transcription(
+                snapshot["job_id"], cancelled=lambda: self._cancelled
+            )
+            self._js("onManualJobUpdated", result)
+
+        threading.Thread(target=worker, daemon=True).start()
+        return {"ok": True, "job": snapshot}
+
+    def get_manual_job(self, job_id):
+        try:
+            return {"ok": True, "job": self._manual.snapshot(job_id)}
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
+
+    def latest_manual_job(self):
+        try:
+            return {"ok": True, "job": self._manual.latest_snapshot()}
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
+
+    def get_transcript(self, item_id):
+        try:
+            return {"ok": True, "transcript": self._manual.get_transcript(item_id)}
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
+
+    def apply_transcript_patch(self, item_id, base_revision, operations):
+        try:
+            revision = self._manual.apply_patch(item_id, base_revision, operations or [])
+            return {"ok": True, "transcript": revision}
+        except RevisionConflict as exc:
+            return {"ok": False, "code": "revision_conflict", "error": str(exc)}
+        except TranscriptError as exc:
+            return {"ok": False, "code": "invalid_patch", "error": str(exc)}
+        except Exception as exc:
+            traceback.print_exc()
+            return {"ok": False, "code": "internal", "error": str(exc)}
+
+    def approve_transcript(self, item_id, revision):
+        try:
+            approved = self._manual.approve(item_id, revision)
+            return {"ok": True, "transcript": approved}
+        except ValidationError as exc:
+            return {"ok": False, "code": "validation", "errors": exc.errors, "error": str(exc)}
+        except RevisionConflict as exc:
+            return {"ok": False, "code": "revision_conflict", "error": str(exc)}
+        except Exception as exc:
+            return {"ok": False, "code": "internal", "error": str(exc)}
+
+    def approve_clean_transcripts(self, job_id):
+        try:
+            snapshot = self._manual.snapshot(job_id)
+            approved = []
+            rejected = []
+            for item in snapshot["items"]:
+                if item["state"] not in {"transcribed", "needs_review"}:
+                    continue
+                transcript = self._manual.get_transcript(item["item_id"])
+                errors = self._manual.store.validation_errors(transcript)
+                low_confidence = any(
+                    word.get("probability") is not None and word["probability"] < 0.65
+                    for word in transcript["words"] if not word.get("deleted")
+                )
+                if errors or low_confidence:
+                    rejected.append(item["item_id"])
+                    continue
+                self._manual.approve(item["item_id"], transcript["revision"])
+                approved.append(item["item_id"])
+            return {"ok": True, "approved": approved, "needs_attention": rejected}
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
+
+    def retry_manual_transcription(self, job_id, item_ids=None):
+        try:
+            snapshot = self._manual.snapshot(job_id)
+            selected = item_ids or [
+                item["item_id"] for item in snapshot["items"]
+                if item["state"] in {"failed", "no_speech", "cancelled"}
+            ]
+            if not selected:
+                return {"ok": False, "error": "Нет файлов для повтора"}
+            self._cancelled = False
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
+
+        def worker():
+            result = self._manual.run_transcription(
+                job_id, selected_ids=selected, cancelled=lambda: self._cancelled
+            )
+            self._js("onManualJobUpdated", result)
+
+        threading.Thread(target=worker, daemon=True).start()
+        return {"ok": True, "count": len(selected)}
+
+    def retranscribe_manual_item(self, item_id, args=None):
+        args = args or {}
+        params = {
+            "model_size": args.get("model") or "large-v3",
+            "device": args.get("device") or "auto",
+            "language": args.get("language") or None,
+            "use_cached_transcript": False,
+        }
+        self._cancelled = False
+
+        def worker():
+            try:
+                snapshot = self._manual.retranscribe(
+                    item_id, params=params, cancelled=lambda: self._cancelled
+                )
+                self._js("onManualJobUpdated", snapshot)
+            except Exception as exc:
+                traceback.print_exc()
+                self._js("onPipelineError", f"Повторная транскрибация: {exc}")
+
+        threading.Thread(target=worker, daemon=True).start()
+        return {"ok": True, "started": True}
+
+    def start_manual_render(self, args):
+        job_id = args.get("job_id")
+        style = args.get("style") or {}
+        selected_ids = args.get("item_ids") or None
+        self._cancelled = False
+        try:
+            snapshot = self._manual.snapshot(job_id)
+            if not snapshot["render_ready"]:
+                return {"ok": False, "error": "Дождитесь транскрибации и одобрите хотя бы один файл"}
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
+
+        def worker():
+            result = self._manual.run_render(
+                job_id, style, OUTPUT_DIR, selected_ids=selected_ids,
+                cancelled=lambda: self._cancelled,
+            )
+            self._js("onManualRenderDone", job_id, result)
+            self._js("onManualJobUpdated", self._manual.snapshot(job_id))
+
+        threading.Thread(target=worker, daemon=True).start()
+        return {"ok": True, "started": True}
 
 
 def enable_file_drop(api, window):

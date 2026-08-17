@@ -73,6 +73,9 @@ body{
   font-size:12px; color: var(--text-dim);
   -webkit-app-region: no-drag;
 }
+.mode-switch{ display:flex; gap:3px; padding:3px; border:1px solid var(--border); border-radius:10px; background:var(--panel-2); -webkit-app-region:no-drag; }
+.mode-switch button{ border:0; background:transparent; color:var(--text-dim); padding:7px 13px; border-radius:7px; cursor:pointer; font-weight:700; }
+.mode-switch button.active{ background:var(--accent-grad); color:#08111f; }
 .dot{ width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good); }
 
 /* ---------- main layout ---------- */
@@ -83,6 +86,35 @@ body{
   background: var(--border);
   overflow:hidden;
 }
+.manual-workspace{ display:grid; grid-template-columns:340px 1fr; gap:1px; background:var(--border); overflow:hidden; }
+.manual-sidebar,.manual-editor{ background:var(--bg); padding:18px; overflow:auto; }
+.manual-summary{ color:var(--text-dim); font-size:12px; margin-bottom:12px; }
+.manual-filters{ display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.manual-filters button,.manual-toolbar button,.word-actions button{ border:1px solid var(--border); background:var(--panel-2); color:var(--text-dim); padding:7px 10px; border-radius:8px; cursor:pointer; }
+.manual-filters button.active{ border-color:var(--accent); color:var(--text); }
+.manual-item{ width:100%; display:grid; grid-template-columns:22px 1fr auto; gap:8px; align-items:center; text-align:left; border:1px solid transparent; background:var(--panel); color:var(--text); padding:10px; border-radius:10px; margin-bottom:6px; cursor:pointer; }
+.manual-item.selected{ border-color:var(--accent); }
+.manual-item small{ display:block; color:var(--text-dim); margin-top:3px; }
+.manual-item .error{ color:var(--danger); }
+.manual-empty{ display:grid; place-items:center; min-height:100%; color:var(--text-dim); text-align:center; }
+.manual-editor-head{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.manual-editor-head h2{ margin:0; font-size:18px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.save-state{ margin-left:auto; color:var(--text-dim); font-size:12px; }
+.manual-content{ display:grid; grid-template-columns:minmax(260px,38%) 1fr; gap:18px; min-height:0; }
+.manual-video{ width:100%; max-height:420px; background:#000; border-radius:12px; }
+.attention-box{ margin-top:10px; padding:10px; border-radius:10px; background:rgba(255,190,67,.08); color:#ffc864; font-size:12px; }
+.word-editor{ display:flex; flex-direction:column; min-height:0; }
+.word-list{ overflow:auto; padding-right:6px; }
+.word-row{ display:grid; grid-template-columns:minmax(150px,1fr) 82px 82px auto; gap:7px; align-items:center; padding:7px; border-bottom:1px solid var(--border); }
+.word-row.low-confidence{ background:rgba(255,190,67,.06); }
+.word-row.deleted{ opacity:.45; }
+.word-row input{ width:100%; background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px; }
+.word-row input:focus{ border-color:var(--accent); outline:none; }
+.word-time{ font-variant-numeric:tabular-nums; }
+.manual-toolbar{ display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+.manual-toolbar .primary{ background:var(--accent-grad); color:#08111f; border:0; font-weight:800; }
+.manual-toolbar button:disabled{ opacity:.45; cursor:not-allowed; }
+.sr-status{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
 .col{
   background: var(--bg);
   padding:18px;
@@ -347,10 +379,14 @@ input[type=color]::-webkit-color-swatch{ border-radius:6px; border:none; }
     </div>
     <div class="logo-sub">локальные субтитры с подсветкой слов</div>
     <div class="spacer"></div>
+    <div class="mode-switch" aria-label="Режим работы">
+      <button id="modeAuto" class="active" type="button">Авто</button>
+      <button id="modeManual" type="button">Мануал</button>
+    </div>
     <div class="gpu-badge"><span class="dot" id="gpuDot"></span><span id="gpuLabel">определение GPU...</span></div>
   </div>
 
-  <div class="main">
+  <div class="main" id="autoWorkspace">
 
     <!-- LEFT: video + transcription -->
     <div class="col">
@@ -542,8 +578,49 @@ input[type=color]::-webkit-color-swatch{ border-radius:6px; border:none; }
 
   </div>
 
+  <div class="manual-workspace hidden" id="manualWorkspace">
+    <aside class="manual-sidebar" aria-label="Очередь проверки">
+      <h3>Пакетная проверка</h3>
+      <div class="manual-summary" id="manualSummary">Транскрипция ещё не запущена</div>
+      <div class="manual-filters" id="manualFilters">
+        <button type="button" class="active" data-filter="all">Все</button>
+        <button type="button" data-filter="attention">Требуют внимания</button>
+        <button type="button" data-filter="reviewed">Одобрены</button>
+        <button type="button" data-filter="errors">Ошибки</button>
+      </div>
+      <div id="manualQueueList"></div>
+    </aside>
+    <section class="manual-editor" id="manualEditor">
+      <div class="manual-empty" id="manualEmpty">Выберите готовый транскрипт слева.<br>Проверять можно, пока остальные файлы распознаются.</div>
+      <div id="manualEditorContent" class="hidden">
+        <div class="manual-editor-head">
+          <h2 id="manualFileName"></h2>
+          <span class="save-state" id="manualSaveState" aria-live="polite">Сохранено</span>
+        </div>
+        <div class="manual-content">
+          <div>
+            <video id="manualVideo" class="manual-video" controls></video>
+            <div id="manualAttention" class="attention-box hidden"></div>
+          </div>
+          <div class="word-editor">
+            <div class="word-list" id="manualWordList"></div>
+            <div class="manual-toolbar">
+              <button type="button" id="approveCurrent" class="primary">Одобрить файл</button>
+              <button type="button" id="nextAttention">Следующий проблемный</button>
+              <button type="button" id="approveClean">Одобрить все без предупреждений</button>
+              <button type="button" id="retryManualFailed">Повторить ошибки</button>
+              <button type="button" id="retranscribeCurrent">Распознать заново</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="sr-status" id="manualLive" aria-live="polite"></div>
+  </div>
+
   <div class="footer">
-    <button class="run-btn" id="runBtn" onclick="runPipeline()">Создать субтитры</button>
+    <button class="run-btn" id="runBtn" onclick="runCurrentMode()">Создать субтитры</button>
+    <button class="btn hidden" id="cancelBtn" style="width:auto" onclick="cancelCurrentQueue()">Остановить после файла</button>
     <div class="progress-wrap">
       <div class="progress-label"><span id="progressStage">Готово к запуску</span><span id="progressPct"></span></div>
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -556,6 +633,8 @@ input[type=color]::-webkit-color-swatch{ border-radius:6px; border:none; }
 
 </div>
 
+<script src="manual-state.js"></script>
+<script src="manual-review.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
