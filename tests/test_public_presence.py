@@ -14,6 +14,7 @@ class PageContractParser(HTMLParser):
         self.ids = set()
         self.links = []
         self.images = []
+        self.stylesheets = []
         self.external_runtime_assets = []
         self.heading_counts = {"h1": 0, "h2": 0}
 
@@ -25,6 +26,8 @@ class PageContractParser(HTMLParser):
             self.links.append(values["href"])
         if tag == "img":
             self.images.append((values.get("src"), values.get("alt", "")))
+        if tag == "link" and values.get("rel") == "stylesheet" and values.get("href"):
+            self.stylesheets.append(values["href"])
         if tag in self.heading_counts:
             self.heading_counts[tag] += 1
         asset = values.get("src") if tag == "script" else values.get("href")
@@ -58,27 +61,46 @@ class GitHubPagesTests(unittest.TestCase):
         self.parser = PageContractParser()
         self.parser.feed(self.path.read_text(encoding="utf-8"))
 
-    def test_landing_page_has_the_approved_six_sections(self):
-        required = {"hero", "modes", "workflow", "trust", "quick-start", "site-footer"}
+    def test_landing_page_has_the_technical_structure(self):
+        required = {"overview", "modes", "specs", "install", "site-footer"}
 
         self.assertTrue(required.issubset(self.parser.ids))
         self.assertEqual(1, self.parser.heading_counts["h1"])
-        self.assertGreaterEqual(self.parser.heading_counts["h2"], 4)
+        self.assertEqual(3, self.parser.heading_counts["h2"])
 
-    def test_public_destinations_and_product_proof_are_present(self):
-        self.assertIn("https://github.com/jimmorisedu-boop/aisubs-local", self.parser.links)
-        self.assertIn("https://t.me/daipotestit", self.parser.links)
+    def test_public_destinations_and_single_product_capture_are_present(self):
+        expected = {
+            "https://github.com/jimmorisedu-boop/aisubs-local",
+            "https://github.com/jimmorisedu-boop/aisubs-local#установка",
+            "https://github.com/jimmorisedu-boop/aisubs-local/blob/main/LICENSE",
+            "https://t.me/daipotestit",
+        }
+
+        self.assertTrue(expected.issubset(set(self.parser.links)))
         images = {src: alt for src, alt in self.parser.images}
-        self.assertIn("screenshot-manual.png", images)
-        self.assertIn("screenshot.png", images)
-        self.assertTrue(images["screenshot-manual.png"].strip())
+        self.assertEqual({"screenshot.png"}, set(images))
         self.assertTrue(images["screenshot.png"].strip())
+
+    def test_copy_is_factual_and_not_promotional(self):
+        html = self.path.read_text(encoding="utf-8")
+
+        for fact in ("Windows 10/11", "faster-whisper", "ffmpeg", "setup.bat", "run.bat", "CPU", "CUDA"):
+            self.assertIn(fact, html)
+        for phrase in (
+            "Проверьте слова. Запустите весь пакет.",
+            "Меньше ожидания между монтажом",
+            "Рабочий процесс студии",
+        ):
+            self.assertNotIn(phrase, html)
 
     def test_local_assets_resolve_without_external_runtime_dependencies(self):
         self.assertEqual([], self.parser.external_runtime_assets)
         for src, _ in self.parser.images:
             if src and not src.startswith(("http://", "https://", "/")):
                 self.assertTrue((self.path.parent / src).is_file(), src)
+        for href in self.parser.stylesheets:
+            if not href.startswith(("http://", "https://", "/")):
+                self.assertTrue((self.path.parent / href).is_file(), href)
 
 
 class ReadmeTests(unittest.TestCase):
