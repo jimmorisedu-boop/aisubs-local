@@ -61,35 +61,61 @@ class GitHubPagesTests(unittest.TestCase):
         self.parser = PageContractParser()
         self.parser.feed(self.path.read_text(encoding="utf-8"))
 
-    def test_landing_page_has_the_technical_structure(self):
-        required = {"overview", "modes", "specs", "install", "site-footer"}
+    def test_landing_page_restores_the_pre_modes_structure(self):
+        html = self.path.read_text(encoding="utf-8")
+        headings = (
+            "Что умеет",
+            "Интерфейс по частям",
+            "Типографика без ручной правки",
+            "Как всё устроено",
+            "Установка",
+            "Требования",
+        )
 
-        self.assertTrue(required.issubset(self.parser.ids))
         self.assertEqual(1, self.parser.heading_counts["h1"])
-        self.assertEqual(3, self.parser.heading_counts["h2"])
+        self.assertEqual(6, self.parser.heading_counts["h2"])
+        for heading in headings:
+            self.assertIn(f"<h2>{heading}</h2>", html)
+        self.assertNotIn('id="modes"', html)
+        self.assertNotIn("Режимы обработки", html)
 
-    def test_public_destinations_and_single_product_capture_are_present(self):
-        expected = {
+    def test_public_destinations_and_historical_product_captures_are_present(self):
+        expected_links = {
             "https://github.com/jimmorisedu-boop/aisubs-local",
-            "https://github.com/jimmorisedu-boop/aisubs-local#установка",
-            "https://github.com/jimmorisedu-boop/aisubs-local/blob/main/LICENSE",
             "https://t.me/daipotestit",
         }
+        expected_images = {
+            "screenshot.png",
+            "ui-input.png",
+            "ui-preview.png",
+            "ui-presets.png",
+            "ui-style.png",
+            "ui-style-2.png",
+        }
 
-        self.assertTrue(expected.issubset(set(self.parser.links)))
+        self.assertTrue(expected_links.issubset(set(self.parser.links)))
         images = {src: alt for src, alt in self.parser.images}
-        self.assertEqual({"screenshot.png"}, set(images))
-        self.assertTrue(images["screenshot.png"].strip())
+        self.assertEqual(expected_images, set(images))
+        for alt in images.values():
+            self.assertTrue(alt.strip())
 
-    def test_copy_is_factual_and_not_promotional(self):
+    def test_copy_matches_the_pre_modes_product_explanation(self):
         html = self.path.read_text(encoding="utf-8")
 
-        for fact in ("Windows 10/11", "faster-whisper", "ffmpeg", "setup.bat", "run.bat", "CPU", "CUDA"):
-            self.assertIn(fact, html)
         for phrase in (
-            "Проверьте слова. Запустите весь пакет.",
-            "Меньше ожидания между монтажом",
-            "Рабочий процесс студии",
+            "Whisper",
+            "ffmpeg",
+            "setup.bat",
+            "run.bat",
+            "Windows 10 или 11",
+            "Типографика без ручной правки",
+        ):
+            self.assertIn(phrase, html)
+        for phrase in (
+            "Режимы обработки",
+            "Два режима. Одна очередь.",
+            "AUTO",
+            "MANUAL",
         ):
             self.assertNotIn(phrase, html)
 
